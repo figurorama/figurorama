@@ -218,6 +218,21 @@
         </div>
     </div>
 
+    <div id="form-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-3xl w-full h-[90vh] overflow-hidden shadow-2xl relative flex flex-col border dark:border-gray-700">
+            <div class="p-4 border-b dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900 rounded-t-2xl">
+                <div>
+                    <h3 class="font-extrabold text-base text-gray-800 dark:text-white">📝 Formulir Pengiriman Alamat</h3>
+                    <p class="text-xs text-amber-600 dark:text-amber-400 font-medium mt-0.5">💡 List belanjaan telah disalin otomatis! Silakan tempel (Paste) di kolom formulir jika dibutuhkan.</p>
+                </div>
+                <button onclick="closeFormModal()" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-bold h-8 w-8 rounded-full flex items-center justify-center transition">✕</button>
+            </div>
+            <div class="flex-1 bg-white dark:bg-gray-800 relative">
+                <iframe id="google-form-iframe" src="" class="w-full h-full border-0" allow="autoplay">Memuat Form Pengiriman...</iframe>
+            </div>
+        </div>
+    </div>
+
     <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-12 py-8 text-sm text-gray-600 dark:text-gray-400">
         <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -246,7 +261,6 @@
         const itemsPerPage = 40;
         let currentPage = 1;
         
-        // Flag internal untuk membedakan tutup modal via tombol back vs tombol silang
         let isModalChangingInternal = false;
 
         async function fetchProducts() {
@@ -256,8 +270,6 @@
                 const data = await response.text();
                 allProducts = parseCSV(data);
                 applyFilterAndSearch();
-                
-                // Cek deep-link produk saat pertama load halaman
                 handleUrlParams();
             } catch (error) {
                 console.error("Error:", error);
@@ -420,7 +432,6 @@
             if (!p) return;
             currentModalProduct = p;
 
-            // Jika dipicu dari tombol klik normal, kita manipulasi history browser-nya
             if (!isFromPopstate) {
                 isModalChangingInternal = true;
                 const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?produk=' + encodeURIComponent(namaProduk);
@@ -501,7 +512,6 @@
             document.getElementById('product-modal').classList.add('hidden');
             currentModalProduct = null;
             
-            // Jika ditutup manual via silang (bukan back gesture), kita mundurkan history-nya
             if (!isFromPopstate) {
                 isModalChangingInternal = true;
                 window.history.back();
@@ -517,18 +527,15 @@
             }
         }
 
-        // --- SISTEM DETEKSI TOMBOL BACK HP / GESTURE ---
         window.addEventListener('popstate', function(event) {
-            if (isModalChangingInternal) return; // Hiraukan jika perubahan dipicu internal kodingan kita
+            if (isModalChangingInternal) return;
 
             const modalElement = document.getElementById('product-modal');
             const isModalVisible = !modalElement.classList.contains('hidden');
 
             if (isModalVisible) {
-                // Skenario 1: Modal sedang terbuka, lalu user klik back/gesture HP
                 closeModal(true); 
             } else if (event.state && event.state.modalOpen && event.state.product) {
-                // Skenario 2: User klik forward atau riwayat mengembalikan ke kondisi barang terbuka
                 openModalByName(event.state.product, true);
             }
         });
@@ -545,6 +552,16 @@
 
         function openFaqModal() { document.getElementById('faq-modal').classList.remove('hidden'); }
         function closeFaqModal() { document.getElementById('faq-modal').classList.add('hidden'); }
+
+        // --- MANIPULASI MODAL GOOGLE FORM ---
+        function openFormModal(finalFormUrl) {
+            document.getElementById('google-form-iframe').src = finalFormUrl;
+            document.getElementById('form-modal').classList.remove('hidden');
+        }
+        function closeFormModal() {
+            document.getElementById('form-modal').classList.add('hidden');
+            document.getElementById('google-form-iframe').src = "";
+        }
 
         function toggleCartDrawer() {
             const drawer = document.getElementById('cart-drawer');
@@ -638,15 +655,27 @@
             const formattedTotal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalHarga).replace(/\s?/g, '');
             textDaftarBelanja += `\nESTIMASI TOTAL: ${formattedTotal}`;
 
+            // Menyalin teks belanjaan otomatis ke clipboard user agar gampang tinggal paste di form
+            navigator.clipboard.writeText(textDaftarBelanja).then(() => {
+                console.log("Daftar belanjaan berhasil disalin ke clipboard.");
+            }).catch(err => {
+                console.error("Gagal menyalin otomatis: ", err);
+            });
+
             const googleFormBaseUrl = "https://docs.google.com/forms/d/e/1FAIpQLScTvb6mu8UMKg7zSidM6mFSNx-mo8cya-Aw9mJnmQbun-69Ew/viewform?usp=pp_url&entry.89159163=";
             const formUrlFinal = googleFormBaseUrl + encodeURIComponent(textDaftarBelanja);
 
             const pesanWA = encodeURIComponent(`Halo Admin Figurorama, saya ingin memesan item berikut melalui keranjang web:\n\n${textDaftarBelanja}\n\nSaya akan mengisi alamat di halaman form berikutnya.`);
             const waUrlFinal = `https://wa.me/6281322555224?text=${pesanWA}`;
 
+            // 1. Buka Chat WhatsApp di tab baru agar tidak memutus sesi web utama
             window.open(waUrlFinal, '_blank');
-            window.location.href = formUrlFinal;
             
+            // 2. Tutup Drawer Keranjang & Buka Google Form di dalam Modal internal
+            toggleCartDrawer();
+            openFormModal(formUrlFinal);
+            
+            // Bersihkan keranjang belanja setelah checkout
             cart = [];
             updateCartUI();
         }
@@ -670,6 +699,7 @@
         window.onclick = function(e) { 
             if(e.target === document.getElementById('product-modal')) closeModal(); 
             if(e.target === document.getElementById('faq-modal')) closeFaqModal();
+            if(e.target === document.getElementById('form-modal')) closeFormModal();
         }
         window.onload = fetchProducts;
     </script>
