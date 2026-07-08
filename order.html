@@ -170,13 +170,14 @@
             const nama = decodeURIComponent(escape(atob(b64Nama)));
             const alamat = decodeURIComponent(escape(atob(b64Alamat)));
             
-            // PEMBERSIH HARGA YANG LEBIH KUAT:
-            // Menghapus pola seperti: "100.000", "100rb", "(Rp 100.000)", "Rp100.000", "100.000,-"
+            // PEMBERSIH TOTAL: Membuang kata kunci transaksi dan nominal harga
             let rawProduk = decodeURIComponent(escape(atob(b64Produk)));
             const produk = rawProduk
-                .replace(/(Rp\.?\s?\d+[\d\.,]*|[\d\.,]+\s?(rb|k|juta))/gi, '') // Hapus pola harga
-                .replace(/[\(\[\{].*?[\)\]\}]/g, '') // Hapus teks di dalam kurung/siku (biasanya tempat harga)
-                .replace(/[,-]+$/g, '') // Hapus sisa tanda baca di akhir
+                .replace(/(subtotal|total|estimasi|harga|ongkir|biaya)\s*:?\s*[\d\.,\s]*/gi, '') // Hapus kata kunci & nominal
+                .replace(/(Rp\.?\s?\d+[\d\.,]*|[\d\.,]+\s?(rb|k|juta))/gi, '') // Hapus sisa nominal harga
+                .replace(/[\(\[\{].*?[\)\]\}]/g, '') // Hapus konten dalam kurung
+                .replace(/[=-]{2,}/g, '') // Hapus garis-garis pemisah
+                .replace(/\s+/g, ' ') // Rapikan spasi ganda
                 .trim();
 
             document.getElementById('lbl-penerima').innerText = nama;
@@ -187,7 +188,6 @@
             printArea.classList.remove('hidden');
             setTimeout(() => { window.print(); printArea.classList.add('hidden'); }, 250);
         }
-
         window.onload = fetchOrders;
     </script>
 </body>
