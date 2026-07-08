@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Figurorama - Order Manager & Label Printer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Desain Khusus untuk Cetak Kertas */
+        @media print {
+            body * { visibility: hidden; background: white !important; }
+            #print-area, #print-area * { visibility: visible; }
+            #print-area { position: absolute; left: 0; top: 0; width: 100%; max-width: 100%; border: none !important; p: 0; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <header class="bg-white shadow-sm no-print">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <img src="logo.jpg" alt="Logo" class="h-10 w-10 object-cover rounded-full" onerror="this.src='https://via.placeholder.com/40?text=F'">
+                <div>
+                    <h1 class="font-bold text-lg text-gray-800">Figurorama Order Manager</h1>
+                    <p class="text-xs text-gray-500">Daftar pesanan masuk & cetak label paket</p>
+                </div>
+            </div>
+            <a href="index.html" class="text-sm font-medium text-emerald-600 hover:underline">← Kembali ke Katalog</a>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8 no-print">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="font-extrabold text-xl text-gray-800 flex items-center gap-2">
+                    📦 Antrean Pesanan Pelanggan
+                </h2>
+                <button onclick="fetchOrders()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-sm transition shadow-sm">
+                    🔄 Refresh Data
+                </button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-gray-200 text-gray-400 text-sm uppercase font-bold bg-gray-50">
+                            <th class="py-3 px-4 w-[15%]">Waktu</th>
+                            <th class="py-3 px-4 w-[20%]">Nama Pelanggan</th>
+                            <th class="py-3 px-4 w-[35%]">Produk Pesanan</th>
+                            <th class="py-3 px-4 w-[20%]">Alamat Pengiriman</th>
+                            <th class="py-3 px-4 text-center w-[10%]">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="order-table-body" class="text-sm divide-y divide-gray-100">
+                        <tr>
+                            <td colspan="5" class="text-center py-8 text-gray-400">Memuat data pesanan dari Google Sheets...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="print-area" class="hidden fixed inset-0 bg-white flex items-center justify-center p-4 z-50">
+        <div class="w-[500px] border-4 border-dashed border-gray-800 p-6 bg-white rounded-md font-sans text-gray-900">
+            
+            <div class="flex items-center justify-between border-b-2 border-gray-800 pb-4 mb-4">
+                <div class="flex items-center space-x-3">
+                    <img src="images/logo.jpg" alt="Logo" class="h-14 w-14 object-cover rounded-full border border-gray-400" onerror="this.src='logo.jpg'">
+                    <div>
+                        <h2 class="font-black text-2xl tracking-wider text-black">FIGURORAMA</h2>
+                        <p class="text-xs font-semibold text-gray-600">Action Figures & Collectibles</p>
+                    </div>
+                </div>
+                <div class="text-right text-xs font-bold text-gray-500">
+                    <p>Semarang, Indonesia</p>
+                    <p>0813-2255-5224</p>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <span class="text-xs font-bold text-gray-500 block uppercase tracking-wide">Kepada Penerima:</span>
+                    <h3 id="lbl-penerima" class="text-xl font-black text-black mt-0.5">Nama Pembeli</h3>
+                </div>
+
+                <div class="bg-gray-50 p-3 rounded border border-gray-300">
+                    <span class="text-xs font-bold text-gray-500 block uppercase tracking-wide mb-0.5">Alamat Tujuan:</span>
+                    <p id="lbl-alamat" class="text-sm font-medium leading-relaxed text-gray-900 whitespace-pre-line">Alamat Lengkap Pembeli</p>
+                </div>
+
+                <div class="border-t-2 border-gray-800 pt-3 flex flex-col space-y-2">
+                    <span class="text-xs font-bold text-gray-500 block uppercase tracking-wide">Isi Paket / Item:</span>
+                    <div class="flex justify-between items-start gap-4">
+                        <p id="lbl-produk" class="text-xs font-bold text-emerald-950 whitespace-pre-line bg-gray-50 p-2.5 rounded border border-gray-200 leading-tight flex-1">Nama Produk Figur</p>
+                        <div class="border border-black px-3 py-1 font-mono text-xs font-bold rounded bg-gray-100 flex-shrink-0">
+                            FR-PACK
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const orderCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT4brsOWYbLuGELkJLNOKKWXpp_3Mjl9SfLtEZrubTICoBrPdwlYrbz0Cl-YC20DnrBMjvdTMhuLc2U/pub?gid=214571553&single=true&output=csv";
+
+        async function fetchOrders() {
+            const tbody = document.getElementById('order-table-body');
+            try {
+                const response = await fetch(orderCsvUrl);
+                if (!response.ok) throw new Error("Gagal mengambil data sheet.");
+                const rawText = await response.text();
+                
+                const orders = parseCSVAdvanced(rawText);
+                if (orders.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-400">Belum ada pesanan masuk di sheet.</td></tr>';
+                    return;
+                }
+
+                orders.reverse(); // Terbaru di atas
+
+                const keys = Object.keys(orders[0]);
+                const timeKey = keys[0];
+                const namaKey = keys.find(k => k.toLowerCase().includes('nama') && !k.toLowerCase().includes('produk')) || keys[1];
+                const alamatKey = keys.find(k => k.toLowerCase().includes('alamat')) || keys[2];
+                const produkKey = keys.find(k => k.toLowerCase().includes('produk')) || keys[3];
+
+                tbody.innerHTML = orders.map((ord) => {
+                    // Sanitasi teks produk dan alamat agar breakline (\n) terlihat rapi di baris tabel
+                    const cleanProduk = (ord[produkKey] || '-').trim();
+                    const cleanAlamat = (ord[alamatKey] || '-').trim();
+
+                    return `
+                        <tr class="hover:bg-gray-50 transition border-b border-gray-100">
+                            <td class="py-4 px-4 text-gray-500 text-xs">${ord[timeKey] || '-'}</td>
+                            <td class="py-4 px-4 font-bold text-gray-800">${ord[namaKey] || '-'}</td>
+                            <td class="py-4 px-4 font-medium text-emerald-700 whitespace-pre-line text-xs leading-relaxed">${cleanProduk}</td>
+                            <td class="py-4 px-4 text-gray-600 text-xs whitespace-pre-line max-w-xs leading-relaxed">${cleanAlamat}</td>
+                            <td class="py-4 px-4 text-center">
+                                <button onclick="printLabel('${btoa(unescape(encodeURIComponent(ord[namaKey] || '')))}', '${btoa(unescape(encodeURIComponent(cleanAlamat)))}', '${btoa(unescape(encodeURIComponent(cleanProduk)))}')" 
+                                        class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-sm">
+                                    🖨️ Cetak Label
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.error(error);
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-red-500">Gagal memuat data antrean. Pastikan URL CSV sudah benar dan sheet telah di-publish ke web.</td></tr>';
+            }
+        }
+
+        // PARSER HEBAT: Menangani koma di dalam tanda kutip dan baris baru kustom paragraf
+        function parseCSVAdvanced(text) {
+            let p = '', c = '', r = [];
+            let q = false;
+            let row = [''];
+            
+            for (let i = 0; i < text.length; i++) {
+                c = text[i];
+                let next = text[i+1];
+                
+                if (c === '"') {
+                    if (q && next === '"') { row[row.length - 1] += '"'; i++; } // Escaped quotes
+                    else { q = !q; } // Toggle quota
+                } else if (c === ',' && !q) {
+                    row.push('');
+                } else if ((c === '\r' || c === '\n') && !q) {
+                    if (c === '\r' && next === '\n') { i++; }
+                    r.push(row);
+                    row = [''];
+                } else {
+                    row[row.length - 1] += c;
+                }
+            }
+            if (row.length > 1 || row[0] !== '') r.push(row);
+            if (r.length === 0) return [];
+            
+            const headers = r[0].map(h => h.trim().replace(/["']/g, ""));
+            const result = [];
+            
+            for (let i = 1; i < r.length; i++) {
+                if (r[i].length !== headers.length) continue; // Skip baris rusak
+                const obj = {};
+                for (let j = 0; j < headers.length; j++) {
+                    obj[headers[j]] = r[i][j];
+                }
+                result.push(obj);
+            }
+            return result;
+        }
+
+        function printLabel(base64Nama, base64Alamat, base64Produk) {
+            const nama = decodeURIComponent(escape(atob(base64Nama)));
+            const alamat = decodeURIComponent(escape(atob(base64Alamat)));
+            const produk = decodeURIComponent(escape(atob(base64Produk)));
+
+            document.getElementById('lbl-penerima').innerText = nama;
+            document.getElementById('lbl-alamat').innerText = alamat;
+            document.getElementById('lbl-produk').innerText = produk;
+
+            const printArea = document.getElementById('print-area');
+            printArea.classList.remove('hidden');
+            
+            setTimeout(() => {
+                window.print();
+                printArea.classList.add('hidden');
+            }, 250);
+        }
+
+        window.onload = fetchOrders;
+    </script>
+</body>
+</html>

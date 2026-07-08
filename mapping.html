@@ -1,0 +1,337 @@
+!DOCTYPE html
+html
+head
+    titlePencocok Katalog Figuroramatitle
+    style
+        .gallery { display grid; grid-template-columns repeat(10, 1fr); gap 5px; }
+        .item { cursor pointer; border 2px solid #ccc; }
+        .itemhover { border-color red; }
+    style
+head
+body
+    h2Pilih Barang & Klik Foto yang Cocokh2
+    select id=barang style=width 300px; padding 10px;select
+    div id=gallery class=gallerydiv
+    h3Hasil Pemetaan (Copy ke Google Sheets)h3
+    textarea id=result rows=10 cols=50textarea
+
+    script
+        const barangList = `[xiaomi pad 5 keyboard original seken
+Bandai mokit ellie drifter sudah rakit lengkap
+1/12 kitbash SMG MP7 custom black
+Kursi gaming keren abu-abu skala 1/12
+Kursi kantor office chair abu-abu skala 1/12
+Diorama kamar cozy room skala 1/12
+1/12 kitbash AK74 SU riffle miniature for figma SHF mafex
+1/12 miniatur payung biru transparan diorama kitbash
+1/12 miniatur tangga lipat diorama kitbash
+bandai 30ms part copotan neverlia loose
+bandai 30ms part copotan far farina loose
+bandai 30ms speed armor rishetta loose
+1/12 figure plamax xi iii sudah rakit banyak bonus
+1/12 kitbash miniatur mainan pedang katana
+1/12 kitbash AK47 riffle miniature for figma SHF mafex
+1/12 kitbash mk18 custom riffle spec ops tan miniature
+1/12 kitbash FN minimi m245 miniature
+1/12 kitbash FN scar long grenade launcher tan miniature
+1/12 kitbash ump 45 SMG miniature
+1/12 kitbash barret m82 sniper riffle light fifty miniature
+1/12 kitbash sepatu canvas converse black
+1/12 kitbash skirt rok mini kaos tshirt
+robotic dog 30mm bandai painted
+1/12 kitbash SIG 553 riffle grey miniature
+1/12 kitbash m4 RIS riffle tan miniature
+1/12 kitbash DD daniel defense riffle spec ops tan miniature
+1/6 kitbash hk416 tan riffle hottoys easy simple damtoys
+Black Trojan Gunzoid custom painted 1/100 MG
+1/12 kitbash P90 black hitam miniature
+1/12 kitbash kriss vector tan miniature
+1/12 kitbash kriss vector white miniature
+1/12 stand base concrete ruin
+1/12 stand base beton retak
+1/6 scale kitbash E&S kriss vector tan
+gm model solaridian 1/72 metal frame full decal, lining, n coating
+Bandai perfect grade PG gundam strike gat x105 dan skygrasper YJL resin dan diorama
+JMS FM aerial full decal, full lining, full coating
+1/6 kitbash fn scar tan riffle hottoys esy simple damtoys
+1/6 kitbash monk robe cassock shaolin
+gundam strike gat x-105 daban + iron toys metal frame
+framw copotan daban 8829 strike sword and launcher
+daban 8829 strike sword and launcher metal body iron toys
+1/12 figure kitbash body seamless
+True1 Toys Android Ala FT0830 BIB Figure 1/6 dengan Bonus Normal Chest Kualitas Perfect
+handmade set gaun dan topi barbie, dapat 4 set
+1/6 kitbash jaket merah red jacket mattel
+1/6 miniatur kitbash conga drums
+box carrying case figure 1/6 muat 2 figure
+1/6 kitbash hands female suntan 3 pasang
+1/6 kitbash hs headsculpt foxbox studio
+1/6 kitbash headsculpt dan body copotan DS toys cloud
+1/6 kitbash pair of hand mechanix tan sand
+sepatu boots barbie original mattel hijau
+1/6 Kitbash Female Sweater Shirt For Phicen Tbleague Jiaou Doll
+1/6 kitbash tas selempang pinggang waist bag
+1/6 kitbash kalung emas bandul king
+1/6 kitbash sepatu hak tinggi fantovel female + kaki
+1/6 kitbash female hoodie blue navy
+1/6 kitbash leather bag female casual
+1/6 kitbash jaket anti ngelotok soosootoys redhood
+1/6 kitbash crater rim boots colok easy simple
+1/6 kitbash headsculpt Beauty Girl ob27 Head Sculpt Model Fit 12'' Female PH UD LD Action Figure
+1/6 kitbash headsculpt holy monk open eyes
+1/6 kitbash headsculpt holy monk closed eyes
+1/6 kitbash headsculpt soosootoys redhood
+1/6 kitbash buddhist prayer short beads real woods
+1/6 kitbash buddhist prayer long beads real woods
+1/6 kitbash belt and suspender tan coklat
+1/6 kitbash penebal perut copotan elevem x kai
+1/6 kitbash jacket jaket transparan grainne witch
+1/6 kitbash tongkat staff priest biksu bikku real wood and copper copotan konglingge yao guan xiao
+1/12 scale figure armored knight repainted metallic chrome stainless
+Neca endoskeleton Terminator T800 original repainted loose, lengkap
+1/6 kitbash hat baseball cap black male
+1/6 shoes sepatu kitbash salomon hiking pmc urban grenadier e&s black
+1/6 kitbash damtoys brown sunglasses
+1/6 kitbash waist pouch bag tas pinggang leather anti ngelotok
+1/12 scale cyber tech wear cyberpunk by MKRM
+PREMIUM FIGURE 1/64 scale miniature figure sasuke naruto orochi
+PREMIUM FIGURE 1/64 scale miniature figure goku ssj2
+1/6 kitbash riffle M4 hottoys damtoys soldierstory
+PREMIUM FIGURE 1/64 scale miniature figure gogeta ssj dragon ball
+PREMIUM FIGURE 1/64 scale miniature figure tobi obito naruto akatsuki Toy
+PREMIUM FIGURE 1/64 scale miniature figure cewek mechanic
+PREMIUM FIGURE 1/64 scale miniature figure cewek marilyn monroe
+PREMIUM FIGURE 1/64 scale miniature figure cowok leaning
+PREMIUM FIGURE 1/64 scale miniature figure cewek casual celana merah duduk
+PREMIUM FIGURE 1/64 scale miniature figure cewek NK #4
+1/6 custom kitbash teenager + aksesoris nya
+PREMIUM FIGURE 1/64 scale miniature figure cewek dress gold Toy
+1/64 scale figure mechanic mekanik cowok biru Toy
+PREMIUM FIGURE skala 1/64 figure cewek pose akatsuki
+PREMIUM FIGURE skala 1/64 figure cowok berjalan kaos goku
+PREMIUM FIGURE skala 1/64 figure cowok botak
+PREMIUM FIGURE skala 1/64 figure cowok fotografer jacket coklat
+diecast hotwheels double cabin custom polisi Indonesia patwal unit
+PREMIUM FIGURE skala 1/64 figure barongsai samsi
+1/64 scale custom made diecast truk tangki pertamina lampu nyala Toy
+PREMIUM FIGURE skala 1/64 figure supercarblondie Diecast Resin
+PREMIUM FIGURE skala 1/64 figure cewek jaket gold hotpants
+1/64 scale miniatur rak oli castrol painted
+1/12 miniatur diorama kursi kayu panjang
+1/12 miniatur diorama kitbash ember dan pisau potong diecast
+1/12 miniatur diorama kaleng kerupik dan kerupuk clay - merah
+1/12 miniatur diorama kaleng kerupik dan kerupuk clay - biru
+1/12 miniatur diorama kursi plastik merah
+1/12 miniatur diorama gerobak mie ayam + tabung gas + kursi kayu
+1/6 kitbash miniatur genset yamaha diorama
+PREMIUM FIGURE skala 1/64 figure cowok hawaiian outfit style with hat
+1/64 scale figures office suit satuan atau set
+PREMIUM FIGURE 1/64 scale akira kaneda motorcycle
+PREMIUM FIGURE 1/64 scale figure gundam helmet male leaning
+1/64 scale figure cewek skirt merah
+PREMIUM FIGURE DIORAMA skala 1/64 akira kaneda and motor anime ver
+PREMIUM FIGURE skala 1/64 figure cowok techwear duduk
+PREMIUM FIGURE skala 1/64 figure cowok cyber techwear red
+PREMIUM FIGURE skala 1/64 figure cowok gangster masked
+PREMIUM FIGURE skala 1/64 figure cowok hoodie celana cargo
+skala 1/64 figure cewek rambut putih panjang
+1/64 scale miniatur diecast motor Buell diorama
+1/64 scale diorama japan street dengan lampu 1 titik
+1/64 scale miniatur BMW C400X biru diecast
+1/64 scale miniatur honda metropolitan diorama motorcycle
+1/12 kitbash miniatur minuman bir kaleng (isi 5)
+1/6 kitbash go pro miniatur bisa swivel
+1/6 hottoys black widows body suit boots gauntlets handsets
+1/12 kitbash classic ak4 rifle toys mainan
+skala 1/64 figure cowok helm gundam Toy
+skala 1/64 figure cowok hoodie kuning pose jongkok
+skala 1/64 figure cowok hoodie hitam jongkok
+skala 1/64 figure cewek selfie
+1/64 diorama parkiran ala jepang ukuran 15x15
+mainan edukasi pinart yellow ukuran large besar (L)
+1/6 kitbash female guitarist
+1/6 kitbash miniatur launcher + ammo 6 pcs hottoys easy simple damtoys toys
+1/6 kitbash ak47 tactical version hottoys easy simple soldier story toys
+bohler k110 tanto knife super tajam sonokeling
+1/6 kitbash female HS headsculpt verycool female angela baby
+1/6 kitbash hs headsculpt female russian army katyusha flagset
+carabiner gantungan kunci motor mobil
+kacamata tony stark edith photochromic blueray lens Eyewear Sunglasses
+kunci pas mur kecil hex 2-2.5-3-4 chrome
+motor custom gorila rapi surat lengkap pajak jalan
+1/6 kitbash vest rompi damtoys gangster kingdom bartley plus jam
+1/6 kitbash mp5 stock riffle with sling toys
+1/6 kitbash jacket jaket kulit blue navy carol denvers anti ngelotok
+1/6 kitbash shoes sepatu canvas gold Doll Toys
+1/6 kitbash half kneepad limtoys venom snake
+1/6 kitbash walkman venom snake limtoys
+1/6 kitbash body harness metal gear venom snake
+1/6 kitbash tas selempang pinggang waist bag
+1/12 miniatur apple imac set diecast metal
+1/6 kitbash rope tali damtoys SDU
+1/6 kitbash m245 minimi merk crazy figure toys
+1/10 figure come4arts pupu x beach friend wysiwyg
+1/6 kitbash training pants female white
+1/12 kitbash thompson round magazine mafia toys
+1/6 miniature kitbash kursi kantor putar chair jiaoudoll
+1/6 custom kitbash military PMC figure latin version toys mainan miniatur
+1/6 kitbash topi jerami jepang
+1/6 kitbash bag tas selempang laptop worldbox geek technical
+1/6 kitbash miniatur smartphone worldbox geek technical
+1/6 kitbash jaket gamer bahan parasut versi anti lotok geek technical
+1/12 miniatur anjing dog diorama kitbash
+1/6 kitbash cutter knife blade
+1/6 diorama hongkong safe house
+1/6 kitbash body damtoys full pegs
+1/6 kitbash coat jas panjang cowboy abu2
+1/6 kitbash shoes sepatu sneakers hot toys marty back to the future
+1/6 kitbash hand made leica camera
+1/6 kitbash goggles kacamata damtoys sokdier story flagset Doll
+1/6 kitbash body damtoys custom yakuza style tattoo
+1/6 kitbash gasmask masker keren
+1/6 kitbash celana jogger unik male patched
+1/6 kitbash kalung necklace gigi taring
+1/6 kitbash miniatur mainan r 0 k 0 k
+1/6 kitbash gauntlet hottoys black widow avengers
+1/6 kitbash headsculpt custom robot android
+1/6 kitbash chinese sword and sheath
+1/6 kitbash headsculpt hs custom v2
+mcfarlane toys spawn MK11 blade custom 1/12
+set figure diorama bengkel workshop motor motorcycle skala 1/2
+1/6 kitbash belt sabuk GK ralap
+1/6 miniatur motor custom scrambler
+1/6 kitbash hs damtoys gangster kingdom spade 7
+1/12 kitbash helmet soldierstory PUBG
+1/12 kitbash hs headsculpt soldierstory PUBG kacamata Toy
+1/6 kitbash hs headsculpt threea 3a TK Kyuuketsuki ORIGINAL
+1/6 kitbash kaos tshirt 3a threea kuning yellow
+1/6 kitbash kaos shirt threeA 3A
+1/12 headsculpt hs threea tommy recast bagus
+1/12 miniatur motor honda c70 merah handmade custom
+1/12 miniatur motor honda cb100 gelatik merah handmade custom
+1/6 kitbash pants celana panjang coklat casual basic
+1/12 miniatur yamaha v75 handmade
+1/12 miniatur sepeda lipat seli brompton handmade
+1/12 miniatur kaleng kerupuk dan isinya
+1/12 miniatur diorama hydrant
+1/12 miniatur diorama cone pembatas jalan
+Jada toys nano metalfigs figures
+1/6 kitbash kaos 3A threea master one jodan
+1/6 kitbash hs headsculpt cowboy western
+1/6 kitbash headsculpt custom threeA kakashi
+1/6 kitbash hs headsculpt rooted hair n beard
+1/6 kitbash hs damtoys gangster kingdom marshall
+1/6 miniatur kaleng oli oil can diecast
+1/6 kitbash helm full face retro black female
+1/6 kitbash thompson round magazine mafia toys
+1/6 kitbash dasi kupu polkadot hitam
+1/6 kitbash sexy skirt and tanktop
+1/6 kitbash sneakers sepatu selop tinggi black gold
+1/6 kitbash hs headsculpt threea 3A
+1/6 kitbash hs headsculpt threea 3a smirking jodan ORIGINAL
+1/6 kitbash kaos 3A threea BBICN
+1/6 kitbash headsculpt jt studio
+1/6 kitbash hands hottoys baby doll
+1/6 kitbash kaos tshirt threea coklat brown
+1/12 diorama arcade center dingdong
+1/6 kitbash kemeja shirt satin damtoys gangster kingdom bartley
+1/12 kursi gaming set black red Doll Toys
+1/6 kitbash hands hottoys ironman mark 2
+1/6 kitbash articualted hands hottoys ironman mark 2
+1/6 kitbash headsculpt custom monkey king sun wu kong
+1/6 kitbash hands hottoys ironman set
+1/12 kitbash bloody saber golok cincin
+1/12 kitbash training suit yellow threea original
+miniatur troli skala 1/6 besi
+1/12 miniatur camera dslr Toy
+1/12 kaos tshirt threea
+1/12 kitbash kaos tanktop
+1/12 miniatur kursi kayu
+1/12 KTM superduke 1290 R maisto
+1/6 kitbash set hands
+weapon riffle gundam HG besar ori bandai
+weapon riffle gundam MG ori bandai
+weapon bazooka gundam bandai ori
+1/12 kitbash bag tas selempang pinggang
+1/6 kitbash weapon Famas rifle toys mainan miniatur
+1/6 kitbash HS headsculpt custom robot silver gold
+1/6 kitbash hands deadpool
+1/6 kitbash sepatu sneakers retro red merah
+1/6 kitbash shoes sepatu casual + kaos kaki + kaki
+1/6 1/12 diorama figure cat kucing tabby abu2 tipe 1
+1/6 1/12 miniatur diorama figure cat kucing warna emas oranye
+1/6 1/12 miniatur kucing cat in a box coklat
+1/6 diorama tempat sampah hijau
+1/6 1/12 miniatur diorama koala
+1/6 kitbash pants celana panjang vintage dark blue male
+1/6 kitbash BDU atas limtoys MGSV aehab venom snake
+1/6 kitbash BDU SWAT navy blue damtoys flagset
+1/6 diorama lemari rak figure kayu coklat 2x5 susun
+1/6 kitbash headsculpt hs jason statham not hottoys
+1/6 kitbash arm band patch diamond dogs metal gear solid mgs limtoys
+1/6 kitbash female school uniform
+1/6 kitbash japanese masker hitam black
+1/6 kitbash holster vietnam era inflames metal boss
+1/6 kitbash jeans rusak bolong
+1/6 kitbash headsculpt hs bruce lee enterbay moveable eye
+1/6 kitbash shoes pantofel with feet hottoys
+1/6 kitbash black boots sepatu shoes scarra
+1/6 kitbash hs headsculpt rick grimes walking dead rooted hair
+collectible cards fleer ultra gold foil signature series green goblin
+collectible cards fleer ultra gold foil signature series claw hide
+collectible cards fleer ultra gold foil signature series spiderman
+collectible cards fleer ultra gold foil signature series ironman
+collectible cards fleer ultra gold foil signature series black cat
+collectible cards fleer ultra gold foil signature series punisher
+collectible cards marvel clear chrome venom
+collectible cards marvel Golden Web black cat
+collectible cards marvel Golden Web scorpion
+collectible cards marvel Golden Web hobgoblin
+minifigure bootleg sentai set
+1/6 kitbash mp5 riffle supressed with sling
+1/6 kitbash door ram damtoys hottoys
+1/6 kitbash bruce lee
+1/6 kitbash female hotpants pants denim jeans nancy in hell
+1/6 kitbash pocket watch gold jam kantong old west cowboy
+1/6 figure kitbash dog anjing white endwar dan armor
+1/6 diorama speaker pc sepasang
+1/6 kitbash veryhot waist pouch bag tas pinggang
+1/6 kitbash damtoys gangster kingdom vanness sunglasses
+1/6 kitbash casual brown shoes real laces
+1/6 kitbash toys pistol 1911 gold twin plus holster
+1/6 kitbash shotgun m1887 hottoys terminator dx10
+1/6 kitbash jacket desert camo damtoys pisces nana Doll
+1/6 black tshirt hitam vts renegade
+1/6 dropleg hitam magazine vts renegade toys figure mainan
+1/6 kitbash shirt kotak flannel kemeja
+1/6 kitbash marine helmet desert camo damtoys flagset soldierstory
+1/6 kitbash penebal paha berotot figure zctoys
+1/6 kitbash penebal paha figure hottoys damtoys flagset
+1/6 canteen OD kitbash keren detil hottoys damtoys
+1/6 hs head sculpt headsculpt daniel craig james bond loading toys
+1/6 weapon shotgun kitbash hottoys easysimple damtoys flagset
+1/6 hs headsculpt john connor christian bale kitbash figure hottoys
+1/6 kitbash dropleg abu2 hottoys damtoys flagset
+1/6 kitbash mannequin manekin pajangan baju
+1/6 tactical shirt bdu black kitbash hottoys damtoys flagset
+1/6 kacamata tactical clear glasses kitbash hottoys damtoys flagset
+minifigure bootleg liberty white
+minifigure bootleg goku saiyan god dbz
+minifigure bootleg goku saiyan dbz]`.split('n');
+        const select = document.getElementById('barang');
+        barangList.forEach(b = { if(b) select.innerHTML += `option${b}option`; });
+        
+        const gallery = document.getElementById('gallery');
+        for(let i=1; i=225; i++) {
+            let num = i.toString().padStart(3, '0');
+            let src = `imagesProduk${num}.webp`;
+            gallery.innerHTML += `img src=${src} class=item width=80 onclick=addMapping('${src}')`;
+        }
+
+        function addMapping(src) {
+            let barang = document.getElementById('barang').value;
+            document.getElementById('result').value += `${barang}  ${src}n`;
+        }
+    script
+body
+html
