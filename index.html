@@ -380,9 +380,14 @@
             document.getElementById('modal-tokped-btn').href = p.Tokopedia || 'https://www.tokopedia.com/figurorama';
             document.getElementById('modal-main-img').src = fotoArray[0] || 'https://via.placeholder.com/300?text=No+Image';
 
+            // PERBAIKAN: Menambahkan validasi error pada setiap thumbnail
             document.getElementById('modal-thumbnails').innerHTML = fotoArray.map((url) => `
-                <button onclick="changeModalImage('${url}')" class="w-12 h-12 border-2 border-gray-200 dark:border-gray-700 rounded-md overflow-hidden flex-shrink-0 bg-white dark:bg-gray-800">
-                    <img src="${url}" class="w-full h-full object-cover">
+                <button onclick="changeModalImage('${url}')" 
+                        class="w-12 h-12 border-2 border-gray-200 dark:border-gray-700 rounded-md overflow-hidden flex-shrink-0 bg-white dark:bg-gray-800"
+                        onerror="this.style.display='none'">
+                    <img src="${url}" 
+                         class="w-full h-full object-cover" 
+                         onerror="this.parentElement.style.display='none'">
                 </button>
             `).join('');
 
