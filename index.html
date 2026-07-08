@@ -94,6 +94,10 @@
                     <div class="mt-3">
                         <span id="modal-status" class="inline-block text-xs font-semibold px-2 py-1 rounded shadow-sm bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200">Ready</span>
                     </div>
+
+                    <div class="mt-4 border-t pt-4 dark:border-gray-700">
+                        <p id="modal-deskripsi" class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed"></p>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 gap-2 mt-6">
@@ -334,11 +338,13 @@
             const hargaKey = keys.find(k => k.toLowerCase() === 'harga') || 'Harga';
             const diskonKey = keys.find(k => k.toLowerCase() === 'diskon') || 'Diskon';
             const hargaDiskonKey = keys.find(k => k.toLowerCase() === 'harga_diskon') || 'Harga_Diskon';
+            const deskripsiKey = keys.find(k => k.toLowerCase() === 'deskripsi') || 'Deskripsi';
 
             const fotoArray = [p.Foto, p.Foto2, p.Foto3, p.Foto4, p.Foto5].filter(url => url && url.trim() !== "");
             
             document.getElementById('modal-nama').innerText = p.Nama;
             document.getElementById('modal-kategori').innerText = p.Kategori || "General";
+            document.getElementById('modal-deskripsi').innerText = p[deskripsiKey] || "Tidak ada deskripsi tersedia.";
             
             const diskonValue = p[diskonKey] ? p[diskonKey].replace(/[^0-9]/g, '') : '';
             let hargaNormalMentah = p[hargaKey] ? p[hargaKey].replace(/[^0-9]/g, '') : '';
@@ -380,7 +386,6 @@
             document.getElementById('modal-tokped-btn').href = p.Tokopedia || 'https://www.tokopedia.com/figurorama';
             document.getElementById('modal-main-img').src = fotoArray[0] || 'https://via.placeholder.com/300?text=No+Image';
 
-            // PERBAIKAN: Menambahkan validasi error pada setiap thumbnail
             document.getElementById('modal-thumbnails').innerHTML = fotoArray.map((url) => `
                 <button onclick="changeModalImage('${url}')" 
                         class="w-12 h-12 border-2 border-gray-200 dark:border-gray-700 rounded-md overflow-hidden flex-shrink-0 bg-white dark:bg-gray-800"
