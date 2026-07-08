@@ -245,7 +245,7 @@
                 </div>
             </div>
 
-            <button onclick="prosesLoginAtauDaftar()" class="w-full py-3 font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition shadow-md text-sm">
+            <button id="btn-submit-login" onclick="prosesLoginAtauDaftar()" class="w-full py-3 font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition shadow-md text-sm">
                 Hubungkan Perangkat & Ambil Data ➔
             </button>
             <p class="text-[11px] text-gray-400 text-center leading-normal">Sistem akan mencocokkan ID & Nomor HP Anda dengan riwayat order data lama di spreadsheet secara aman.</p>
@@ -693,25 +693,41 @@
             const formattedTotal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalHarga).replace(/\s?/g, '');
             textDaftarBelanja += `\nESTIMASI TOTAL: ${formattedTotal}`;
 
-            // Jika pelanggan sudah login, lampirkan identitas ke baris paling atas belanjaan
-            const savedUser = localStorage.getItem('fig_user');
-            const savedHp = localStorage.getItem('fig_hp');
+            // Ambil data member terverifikasi dari localStorage (jika ada)
+            const savedUser = localStorage.getItem('fig_user') || "";
+            const savedFullName = localStorage.getItem('fig_fullname') || savedUser;
+            const savedHp = localStorage.getItem('fig_hp') || "";
+            const savedAlamat = localStorage.getItem('fig_alamat') || "";
+
             let dataProfilPrefix = "";
             if (savedUser && savedHp) {
-                dataProfilPrefix = `MEMBER ID: ${savedUser}\nWHATSAPP: ${savedHp}\n\n`;
+                dataProfilPrefix = `MEMBER ID: ${savedUser}\nNAMA LENGKAP: ${savedFullName}\nWHATSAPP: ${savedHp}\n\n`;
             }
 
             const teksFormulirLengkap = dataProfilPrefix + textDaftarBelanja;
 
-            // Menyalin teks belanjaan otomatis ke clipboard user agar gampang tinggal paste di form
+            // Menyalin teks belanjaan otomatis ke clipboard user agar gampang tinggal paste di form jika diperlukan
             navigator.clipboard.writeText(teksFormulirLengkap).then(() => {
                 console.log("Daftar belanjaan berhasil disalin ke clipboard.");
             }).catch(err => {
                 console.error("Gagal menyalin otomatis: ", err);
             });
 
-            const googleFormBaseUrl = "https://docs.google.com/forms/d/e/1FAIpQLScTvb6mu8UMKg7zSidM6mFSNx-mo8cya-Aw9mJnmQbun-69Ew/viewform?usp=pp_url&entry.89159163=";
-            const formUrlFinal = googleFormBaseUrl + encodeURIComponent(teksFormulirLengkap);
+            // Entry ID Google Form untuk pre-filled data (Sesuaikan angka ID di bawah jika diperlukan)
+            const entryBelanjaanID = "entry.89159163"; 
+            const entryNamaLengkapID = "entry.11111111"; // Ganti dengan Entry ID Nama Lengkap Form Anda
+            const entryNoHpID = "entry.22222222";       // Ganti dengan Entry ID No HP Form Anda
+            const entryAlamatID = "entry.33333333";     // Ganti dengan Entry ID Alamat Form Anda
+
+            let googleFormBaseUrl = `https://docs.google.com/forms/d/e/1FAIpQLScTvb6mu8UMKg7zSidM6mFSNx-mo8cya-Aw9mJnmQbun-69Ew/viewform?usp=pp_url`;
+            
+            // Satukan pre-filled query parameters ke URL Form
+            let formUrlFinal = googleFormBaseUrl + 
+                               `&${entryBelanjaanID}=` + encodeURIComponent(teksFormulirLengkap);
+            
+            if (savedFullName) formUrlFinal += `&${entryNamaLengkapID}=` + encodeURIComponent(savedFullName);
+            if (savedHp) formUrlFinal += `&${entryNoHpID}=` + encodeURIComponent(savedHp);
+            if (savedAlamat) formUrlFinal += `&${entryAlamatID}=` + encodeURIComponent(savedAlamat);
 
             const pesanWA = encodeURIComponent(`Halo Admin Figurorama, saya ingin memesan item berikut melalui keranjang web:\n\n${teksFormulirLengkap}\n\nSaya akan mengisi alamat di halaman form berikutnya.`);
             const waUrlFinal = `https://wa.me/6281322555224?text=${pesanWA}`;
@@ -738,33 +754,66 @@
 
             if(!user || !hp) return alert("Mohon isi Username dan Nomor HP WhatsApp Anda!");
 
+            const btnSubmit = document.getElementById('btn-submit-login');
+            const teksAwalTombol = btnSubmit.innerText;
+            btnSubmit.innerText = "Memproses Database...";
+            btnSubmit.disabled = true;
+
             try {
-                // Mengirim data kecocokan ke Google Apps Script Web App secara terenkripsi background
+                // Mengirim data ke Google Apps Script tanpa mode 'no-cors' agar response JSON dapat dibaca
                 const response = await fetch(WEB_APP_URL, {
                     method: 'POST',
-                    mode: 'no-cors', 
                     body: JSON.stringify({ nama: user, hp: hp })
                 });
 
-                // Kunci data dasar ke memori browser lokal perangkat baru
-                localStorage.setItem('fig_user', user);
-                localStorage.setItem('fig_hp', hp);
+                const resData = await response.json();
+
+                if (resData.status === "old_member" || resData.status === "new_member") {
+                    // Menyimpan data riil dari Spreadsheet ke memori browser lokal
+                    localStorage.setItem('fig_user', resData.username || user);
+                    localStorage.setItem('fig_fullname', resData.namaLengkap || user);
+                    localStorage.setItem('fig_hp', resData.hp || hp);
+                    localStorage.setItem('fig_alamat', resData.alamat || "-");
+                    
+                    if (resData.status === "old_member") {
+                        alert("Selamat datang kembali, " + (resData.namaLengkap || user) + "! Data riwayat alamat Anda berhasil dimuat.");
+                    } else {
+                        alert("Username baru terdeteksi! Anda otomatis terdaftar sebagai member baru.");
+                    }
+                } else {
+                    // Fallback jika respons status tidak spesifik
+                    localStorage.setItem('fig_user', user);
+                    localStorage.setItem('fig_fullname', user);
+                    localStorage.setItem('fig_hp', hp);
+                    localStorage.setItem('fig_alamat', "-");
+                    alert("Identitas akun berhasil terhubung dengan perangkat ini!");
+                }
                 
-                alert("Identitas akun berhasil terhubung dengan perangkat ini!");
                 checkLoginStatus();
                 closeLoginModal();
             } catch (error) {
                 console.error("Error Login:", error);
-                alert("Gagal melakukan verifikasi ke database.");
+                // Fallback offline / local testing jika Apps Script belum terbit atau CORS bermasalah
+                localStorage.setItem('fig_user', user);
+                localStorage.setItem('fig_fullname', user);
+                localStorage.setItem('fig_hp', hp);
+                localStorage.setItem('fig_alamat', "-");
+                
+                alert("Identitas akun dikunci di lokal perangkat (Offline Mode).");
+                checkLoginStatus();
+                closeLoginModal();
+            } finally {
+                btnSubmit.innerText = teksAwalTombol;
+                btnSubmit.disabled = false;
             }
         }
 
         function checkLoginStatus() {
-            const savedUser = localStorage.getItem('fig_user');
-            if (savedUser) {
+            const savedFullName = localStorage.getItem('fig_fullname') || localStorage.getItem('fig_user');
+            if (savedFullName) {
                 document.getElementById('btn-login-header').classList.add('hidden');
                 document.getElementById('user-status-area').classList.remove('hidden');
-                document.getElementById('display-username').innerText = savedUser;
+                document.getElementById('display-username').innerText = savedFullName;
             } else {
                 document.getElementById('btn-login-header').classList.remove('hidden');
                 document.getElementById('user-status-area').classList.add('hidden');
@@ -774,7 +823,9 @@
         function logoutPelanggan() {
             if(confirm("Apakah Anda ingin keluar dari akun member di perangkat ini?")) {
                 localStorage.removeItem('fig_user');
+                localStorage.removeItem('fig_fullname');
                 localStorage.removeItem('fig_hp');
+                localStorage.removeItem('fig_alamat');
                 checkLoginStatus();
                 alert("Berhasil keluar.");
             }
