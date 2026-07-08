@@ -5,61 +5,77 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Figurorama - Hobby Store</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <style>
-        body { background-color: #fafcfb; color: #2d3748; }
-        .bg-pastel-green { background-color: #e6f4ea; }
-        .text-pastel-green-dark { color: #2e7d32; }
+        body { background-color: #fafcfb; color: #2d3748; transition: background-color 0.3s, color 0.3s; }
+        .bg-pastel-green { background-color: #e6f4ea; transition: background-color 0.3s; }
+        .dark body { background-color: #1a202c; color: #e2e8f0; }
+        .dark .bg-pastel-green { background-color: #2d3748; }
     </style>
 </head>
-<body class="relative min-h-screen pb-24">
+<body class="relative min-h-screen pb-24 dark:bg-gray-900 dark:text-gray-100">
 
-    <header class="bg-white shadow-sm sticky top-0 z-40">
+    <header class="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-40 transition-colors duration-300">
         <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-3">
-                <img src="logo.jpg" alt="Figurorama Logo" class="h-12 w-12 object-cover rounded-full border border-gray-200" onerror="this.src='https://via.placeholder.com/50?text=F'">
+                <img src="logo.jpg" alt="Figurorama Logo" class="h-12 w-12 object-cover rounded-full border border-gray-200 dark:border-gray-700" onerror="this.src='https://via.placeholder.com/50?text=F'">
                 <div>
-                    <h1 class="font-bold text-xl tracking-wide text-gray-800">FIGURORAMA</h1>
-                    <p class="text-xs text-gray-500">Action Figures & Collectibles Catalog</p>
+                    <h1 class="font-bold text-xl tracking-wide text-gray-800 dark:text-white">FIGURORAMA</h1>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Action Figures & Collectibles Catalog</p>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
-                <a href="https://www.tokopedia.com/figurorama" target="_blank" class="text-sm font-medium text-emerald-600 hover:underline flex items-center gap-1">
+                <button onclick="toggleDarkMode()" class="p-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition text-lg" title="Toggle Dark Mode">
+                    <span class="block dark:hidden">🌙</span>
+                    <span class="hidden dark:block">☀️</span>
+                </button>
+                <a href="https://www.tokopedia.com/figurorama" target="_blank" class="text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
                     Visit Tokopedia ↗
                 </a>
             </div>
         </div>
     </header>
 
-    <section class="bg-pastel-green py-12 px-4 text-center">
+    <section class="bg-pastel-green py-12 px-4 text-center dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
         <div class="max-w-3xl mx-auto">
-            <h2 class="text-3xl font-extrabold text-gray-800 mb-2">Welcome to Figurorama Online Store</h2>
-            <p class="text-gray-600 mb-6">Tambahkan produk ke keranjang untuk melakukan *multiple order* sekaligus dengan mudah, aman, dan praktis.</p>
+            <h2 class="text-3xl font-extrabold text-gray-800 dark:text-white mb-2">Welcome to Figurorama Online Store</h2>
+            <p class="text-gray-600 dark:text-gray-300 mb-6">Tambahkan produk ke keranjang untuk melakukan *multiple order* sekaligus dengan mudah, aman, dan praktis.</p>
             
+            <!-- KOLOM SEARCH -->
+            <div class="max-w-md mx-auto mb-6 relative">
+                <input type="text" id="search-input" oninput="handleSearch()" placeholder="Cari produk favorit Anda..." class="w-full px-5 py-3 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
+                <span class="absolute right-4 top-3.5 text-gray-400">🔍</span>
+            </div>
+
             <div class="flex flex-wrap justify-center gap-2" id="category-filters">
                 <button data-cat="all" onclick="filterCategory('all')" class="px-4 py-2 rounded-full text-sm font-medium bg-emerald-100 border border-emerald-300 text-emerald-800 shadow-sm transition">All Items</button>
-                <button data-cat="1/6 figures and parts" onclick="filterCategory('1/6 Figures and parts')" class="px-4 py-2 rounded-full text-sm font-medium bg-white shadow-sm border text-gray-600 hover:bg-emerald-50 transition">1/6 Figures & Parts</button>
-                <button data-cat="1/12 figures and parts" onclick="filterCategory('1/12 Figures and parts')" class="px-4 py-2 rounded-full text-sm font-medium bg-white shadow-sm border text-gray-600 hover:bg-emerald-50 transition">1/12 Figures & Parts</button>
-                <button data-cat="gunpla" onclick="filterCategory('Gunpla')" class="px-4 py-2 rounded-full text-sm font-medium bg-white shadow-sm border text-gray-600 hover:bg-emerald-50 transition">Gunpla</button>
-                <button data-cat="1/64th scale" onclick="filterCategory('1/64th scale')" class="px-4 py-2 rounded-full text-sm font-medium bg-white shadow-sm border text-gray-600 hover:bg-emerald-50 transition">1/64th Scale</button>
-                <button data-cat="others" onclick="filterCategory('others')" class="px-4 py-2 rounded-full text-sm font-medium bg-white shadow-sm border text-gray-600 hover:bg-emerald-50 transition">Others</button>
-                <button data-cat="habis" onclick="filterCategory('habis')" class="px-4 py-2 rounded-full text-sm font-medium bg-white shadow-sm border text-red-600 hover:bg-red-50 border-red-200 transition">📦 Habis</button>
+                <button data-cat="1/6 figures and parts" onclick="filterCategory('1/6 Figures and parts')" class="px-4 py-2 rounded-full text-sm font-medium bg-white dark:bg-gray-700 shadow-sm border dark:border-gray-600 text-gray-600 dark:text-gray-200 hover:bg-emerald-50 dark:hover:bg-gray-600 transition">1/6 Figures & Parts</button>
+                <button data-cat="1/12 figures and parts" onclick="filterCategory('1/12 Figures and parts')" class="px-4 py-2 rounded-full text-sm font-medium bg-white dark:bg-gray-700 shadow-sm border dark:border-gray-600 text-gray-600 dark:text-gray-200 hover:bg-emerald-50 dark:hover:bg-gray-600 transition">1/12 Figures & Parts</button>
+                <button data-cat="gunpla" onclick="filterCategory('Gunpla')" class="px-4 py-2 rounded-full text-sm font-medium bg-white dark:bg-gray-700 shadow-sm border dark:border-gray-600 text-gray-600 dark:text-gray-200 hover:bg-emerald-50 dark:hover:bg-gray-600 transition">Gunpla</button>
+                <button data-cat="1/64th scale" onclick="filterCategory('1/64th scale')" class="px-4 py-2 rounded-full text-sm font-medium bg-white dark:bg-gray-700 shadow-sm border dark:border-gray-600 text-gray-600 dark:text-gray-200 hover:bg-emerald-50 dark:hover:bg-gray-600 transition">1/64th Scale</button>
+                <button data-cat="others" onclick="filterCategory('others')" class="px-4 py-2 rounded-full text-sm font-medium bg-white dark:bg-gray-700 shadow-sm border dark:border-gray-600 text-gray-600 dark:text-gray-200 hover:bg-emerald-50 dark:hover:bg-gray-600 transition">Others</button>
+                <button data-cat="habis" onclick="filterCategory('habis')" class="px-4 py-2 rounded-full text-sm font-medium bg-white dark:bg-gray-700 shadow-sm border text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 border-red-200 dark:border-red-900 transition">📦 Habis</button>
             </div>
         </div>
     </section>
 
     <main class="max-w-6xl mx-auto px-4 py-12">
         <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            <p class="text-center col-span-full text-gray-500 py-12">Memuat katalog produk Figurorama...</p>
+            <p class="text-center col-span-full text-gray-500 dark:text-gray-400 py-12">Memuat katalog produk Figurorama...</p>
         </div>
         <div id="pagination-controls" class="flex justify-center items-center gap-2 mt-12 flex-wrap"></div>
     </main>
 
     <div id="product-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative flex flex-col md:flex-row">
-            <button onclick="closeModal()" class="absolute top-3 right-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold h-8 w-8 rounded-full flex items-center justify-center z-10 transition">✕</button>
+        <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative flex flex-col md:flex-row border dark:border-gray-700">
+            <button onclick="closeModal()" class="absolute top-3 right-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-bold h-8 w-8 rounded-full flex items-center justify-center z-10 transition">✕</button>
             
-            <div class="w-full md:w-1/2 p-4 flex flex-col justify-between bg-gray-50 rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none">
-                <div class="relative pb-[100%] bg-white rounded-xl shadow-inner border border-gray-100 overflow-hidden">
+            <div class="w-full md:w-1/2 p-4 flex flex-col justify-between bg-gray-50 dark:bg-gray-900 rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none">
+                <div class="relative pb-[100%] bg-white dark:bg-gray-800 rounded-xl shadow-inner border border-gray-100 dark:border-gray-700 overflow-hidden">
                     <img id="modal-main-img" src="" alt="Main Image" class="absolute inset-0 w-full h-full object-cover">
                     <div id="modal-discount-badge" class="absolute bottom-2 right-2 hidden bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded shadow-sm tracking-wider animate-pulse"></div>
                 </div>
@@ -68,16 +84,16 @@
 
             <div class="w-full md:w-1/2 p-6 flex flex-col justify-between">
                 <div>
-                    <span id="modal-kategori" class="text-xs text-emerald-600 font-bold uppercase tracking-wider">Kategori</span>
-                    <h3 id="modal-nama" class="text-xl font-extrabold text-gray-800 mt-1 leading-snug">Nama Produk</h3>
+                    <span id="modal-kategori" class="text-xs text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider">Kategori</span>
+                    <h3 id="modal-nama" class="text-xl font-extrabold text-gray-800 dark:text-white mt-1 leading-snug">Nama Produk</h3>
                     
                     <div class="mt-3 flex flex-col">
-                        <span id="modal-harga-lama" class="text-gray-400 line-through text-xs hidden"></span>
-                        <p id="modal-harga" class="text-gray-700 font-black text-2xl text-emerald-700 leading-tight">Harga</p>
+                        <span id="modal-harga-lama" class="text-gray-400 dark:text-gray-500 line-through text-xs hidden"></span>
+                        <p id="modal-harga" class="text-gray-700 dark:text-emerald-400 font-black text-2xl text-emerald-700 leading-tight">Harga</p>
                     </div>
 
                     <div class="mt-3">
-                        <span id="modal-status" class="inline-block text-xs font-semibold px-2 py-1 rounded shadow-sm bg-emerald-100 text-emerald-800">Ready</span>
+                        <span id="modal-status" class="inline-block text-xs font-semibold px-2 py-1 rounded shadow-sm bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200">Ready</span>
                     </div>
                 </div>
 
@@ -85,7 +101,7 @@
                     <button id="modal-add-cart-btn" onclick="addToCartFromModal()" class="w-full text-center py-3 font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition shadow-sm">
                         🛒 Tambah ke Keranjang Belanja
                     </button>
-                    <a id="modal-tokped-btn" href="#" target="_blank" class="w-full text-center py-3 font-bold text-emerald-700 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition shadow-sm">
+                    <a id="modal-tokped-btn" href="#" target="_blank" class="w-full text-center py-3 font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition shadow-sm">
                         🛍️ Cari Produk ini di Tokopedia
                     </a>
                 </div>
@@ -98,20 +114,20 @@
         <span id="cart-count" class="bg-white text-emerald-700 font-black text-xs px-2 py-1 rounded-full">0</span>
     </div>
 
-    <div id="cart-drawer" class="fixed inset-y-0 right-0 max-w-md w-full bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col justify-between border-l border-gray-100">
+    <div id="cart-drawer" class="fixed inset-y-0 right-0 max-w-md w-full bg-white dark:bg-gray-800 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col justify-between border-l border-gray-100 dark:border-gray-700">
         <div class="p-6 overflow-y-auto flex-1">
-            <div class="flex justify-between items-center border-b border-gray-100 pb-4 mb-4">
-                <h3 class="font-extrabold text-lg text-gray-800 flex items-center gap-2">🛒 Keranjang Belanja Anda</h3>
-                <button onclick="toggleCartDrawer()" class="text-gray-400 hover:text-gray-600 font-bold text-lg">✕</button>
+            <div class="flex justify-between items-center border-b border-gray-100 dark:border-gray-700 pb-4 mb-4">
+                <h3 class="font-extrabold text-lg text-gray-800 dark:text-white flex items-center gap-2">🛒 Keranjang Belanja Anda</h3>
+                <button onclick="toggleCartDrawer()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 font-bold text-lg">✕</button>
             </div>
             <div id="cart-items-list" class="space-y-4">
                 <p class="text-center text-gray-400 py-8 text-sm">Keranjang belanja Anda masih kosong.</p>
             </div>
         </div>
-        <div class="p-6 bg-gray-50 border-t border-gray-100">
+        <div class="p-6 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700">
             <div class="flex justify-between items-center mb-4">
-                <span class="font-bold text-gray-600">Estimasi Total:</span>
-                <span id="cart-total-price" class="font-black text-xl text-emerald-700">Rp0</span>
+                <span class="font-bold text-gray-600 dark:text-gray-400">Estimasi Total:</span>
+                <span id="cart-total-price" class="font-black text-xl text-emerald-700 dark:text-emerald-400">Rp0</span>
             </div>
             <button onclick="checkoutCart()" class="w-full text-center py-3.5 font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition shadow-md text-sm">
                 📝 Lanjut Isi Form & Kirim ke WA
@@ -119,20 +135,20 @@
         </div>
     </div>
 
-    <footer class="bg-white border-t border-gray-200 mt-12 py-8 text-sm text-gray-600">
+    <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-12 py-8 text-sm text-gray-600 dark:text-gray-400">
         <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <h3 class="font-bold text-gray-800 mb-2 text-base">Figurorama</h3>
+                <h3 class="font-bold text-gray-800 dark:text-white mb-2 text-base">Figurorama</h3>
                 <p>Katalog pajangan produk koleksi figur 1/6, 1/12, dan komponen kustom pelengkap lainnya.</p>
             </div>
             <div>
-                <h3 class="font-bold text-gray-800 mb-2 text-base">Kontak Resmi Toko</h3>
-                <p class="mb-1">📧 Email: <a href="mailto:figurorama@gmail.com" class="text-emerald-600 hover:underline">figurorama@gmail.com</a></p>
-                <p class="mb-1">📱 WhatsApp: <a href="https://wa.me/6281322555224" class="text-emerald-600 hover:underline">081322555224</a></p>
-                <p>🛍️ Tokopedia: <a href="https://www.tokopedia.com/figurorama" target="_blank" class="text-emerald-600 hover:underline">tokopedia.com/figurorama</a></p>
+                <h3 class="font-bold text-gray-800 dark:text-white mb-2 text-base">Kontak Resmi Toko</h3>
+                <p class="mb-1">📧 Email: <a href="mailto:figurorama@gmail.com" class="text-emerald-600 dark:text-emerald-400 hover:underline">figurorama@gmail.com</a></p>
+                <p class="mb-1">📱 WhatsApp: <a href="https://wa.me/6281322555224" class="text-emerald-600 dark:text-emerald-400 hover:underline">081322555224</a></p>
+                <p>🛍️ Tokopedia: <a href="https://www.tokopedia.com/figurorama" target="_blank" class="text-emerald-600 dark:text-emerald-400 hover:underline">tokopedia.com/figurorama</a></p>
             </div>
         </div>
-        <div class="text-center mt-8 pt-4 border-t border-gray-100 text-xs text-gray-400">
+        <div class="text-center mt-8 pt-4 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-400 dark:text-gray-500">
             &copy; 2026 Figurorama. Hosted beautifully on GitHub Pages.
         </div>
     </footer>
@@ -141,6 +157,7 @@
         const csvUrl = "https://docs.google.com/spreadsheets/d/1AAu7tmbftfQ7C2mnqJMYCGJkj0Bqs3RWPzsTTn-sdoU/export?format=csv";
         let allProducts = [];
         let filteredProducts = [];
+        let currentCategory = 'all';
         let cart = [];
         let currentModalProduct = null;
         const itemsPerPage = 40;
@@ -152,8 +169,7 @@
                 if (!response.ok) throw new Error("Gagal mengunduh data.");
                 const data = await response.text();
                 allProducts = parseCSV(data);
-                filteredProducts = allProducts.filter(p => !p.Status || p.Status.trim().toLowerCase() !== 'kosong');
-                renderProducts();
+                applyFilterAndSearch();
             } catch (error) {
                 console.error("Error:", error);
                 document.getElementById('product-grid').innerHTML = '<p class="text-center col-span-full text-red-500 py-12">Gagal memuat katalog produk.</p>';
@@ -178,10 +194,53 @@
             return list;
         }
 
+        function applyFilterAndSearch() {
+            const searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
+            
+            // 1. Filter Berdasarkan Kategori Utama
+            let baseProducts = [];
+            if (currentCategory === 'habis') {
+                baseProducts = allProducts.filter(p => p.Status && p.Status.trim().toLowerCase() === 'kosong');
+            } else if (currentCategory === 'all') {
+                baseProducts = allProducts.filter(p => !p.Status || p.Status.trim().toLowerCase() !== 'kosong');
+            } else {
+                baseProducts = allProducts.filter(p => p.Kategori && p.Kategori.trim().toLowerCase() === currentCategory && (!p.Status || p.Status.trim().toLowerCase() !== 'kosong'));
+            }
+
+            // 2. Filter Berdasarkan Kolom Pencarian (Search Input)
+            if (searchQuery !== '') {
+                filteredProducts = baseProducts.filter(p => p.Nama && p.Nama.toLowerCase().includes(searchQuery));
+            } else {
+                filteredProducts = baseProducts;
+            }
+
+            renderProducts();
+        }
+
+        function handleSearch() {
+            currentPage = 1;
+            applyFilterAndSearch();
+        }
+
+        function filterCategory(cat) {
+            currentCategory = cat.toLowerCase();
+            const buttons = document.querySelectorAll('#category-filters button');
+            buttons.forEach(btn => {
+                const targetCat = btn.getAttribute('data-cat');
+                if(targetCat === currentCategory) {
+                    btn.className = currentCategory === 'habis' ? "px-4 py-2 rounded-full text-sm font-medium bg-red-100 border border-red-300 text-red-800 shadow-sm" : "px-4 py-2 rounded-full text-sm font-medium bg-emerald-100 border border-emerald-300 text-emerald-800 shadow-sm";
+                } else {
+                    btn.className = btn.getAttribute('data-cat') === 'habis' ? "px-4 py-2 rounded-full text-sm font-medium bg-white dark:bg-gray-700 shadow-sm border text-red-600 dark:text-red-400 border-red-200 dark:border-red-900" : "px-4 py-2 rounded-full text-sm font-medium bg-white dark:bg-gray-700 shadow-sm border text-gray-600 dark:text-gray-200 border-gray-200 dark:border-gray-600 hover:bg-emerald-50 dark:hover:bg-gray-600";
+                }
+            });
+            currentPage = 1;
+            applyFilterAndSearch();
+        }
+
         function renderProducts() {
             const grid = document.getElementById('product-grid');
             if(filteredProducts.length === 0) {
-                grid.innerHTML = '<p class="text-center col-span-full text-gray-400 py-12">Tidak ada produk.</p>';
+                grid.innerHTML = '<p class="text-center col-span-full text-gray-400 dark:text-gray-500 py-12">Tidak ada produk yang cocok.</p>';
                 document.getElementById('pagination-controls').innerHTML = '';
                 return;
             }
@@ -201,30 +260,28 @@
                 const isKosong = p.Status && p.Status.trim().toLowerCase() === 'kosong';
                 const diskonValue = p[diskonKey] ? p[diskonKey].replace(/[^0-9]/g, '') : '';
                 
-                // Kalkulasi Format Tampilan Harga Utama & Coret
                 let hargaNormalMentah = p[hargaKey] ? p[hargaKey].replace(/[^0-9]/g, '') : '';
                 let hargaDiskonMentah = p[hargaDiskonKey] ? p[hargaDiskonKey].replace(/[^0-9]/g, '') : '';
                 
                 let htmlHarga = "";
                 if (diskonValue && hargaDiskonMentah) {
-                    let formattedLama = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(hargaNormalMentah).replace(/\s?/g, '');
                     let formattedBaru = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(hargaDiskonMentah).replace(/\s?/g, '');
                     htmlHarga = `
-                        <span class="text-gray-400 line-through text-[11px] block">Rp ${parseInt(hargaNormalMentah).toLocaleString('id-ID')}</span>
-                        <span class="text-emerald-700 font-extrabold text-lg block leading-tight">${formattedBaru}</span>
+                        <span class="text-gray-400 dark:text-gray-500 line-through text-[11px] block">Rp ${parseInt(hargaNormalMentah).toLocaleString('id-ID')}</span>
+                        <span class="text-emerald-700 dark:text-emerald-400 font-extrabold text-lg block leading-tight">${formattedBaru}</span>
                     `;
                 } else {
                     let formattedNormal = "Hubungi Admin";
                     if (hargaNormalMentah) {
                         formattedNormal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(hargaNormalMentah).replace(/\s?/g, '');
                     }
-                    htmlHarga = `<span class="text-gray-700 font-extrabold text-lg block">${formattedNormal}</span>`;
+                    htmlHarga = `<span class="text-gray-700 dark:text-gray-200 font-extrabold text-lg block">${formattedNormal}</span>`;
                 }
 
                 return `
-                    <div onclick="openModalByName('${namaAman}')" class="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition duration-300 flex flex-col justify-between cursor-pointer group">
+                    <div onclick="openModalByName('${namaAman}')" class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition duration-300 flex flex-col justify-between cursor-pointer group">
                         <div>
-                            <div class="relative pb-[100%] bg-gray-50 overflow-hidden">
+                            <div class="relative pb-[100%] bg-gray-50 dark:bg-gray-900 overflow-hidden">
                                 <img src="${p.Foto || 'https://via.placeholder.com/300?text=No+Image'}" alt="${namaProduk}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
                                 <span class="absolute top-2 right-2 text-xs font-semibold px-2 py-1 rounded shadow-sm ${isKosong ? 'bg-red-100 text-red-800' : p.Status === 'Ready' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
                                     ${p.Status || 'Ready'}
@@ -236,14 +293,14 @@
                                 ` : ''}
                             </div>
                             <div class="p-4">
-                                <span class="text-xs text-emerald-600 font-bold uppercase tracking-wider">${p.Kategori || 'General'}</span>
-                                <h4 class="font-bold text-gray-800 text-base mt-1 line-clamp-2 group-hover:text-emerald-600 transition">${namaProduk}</h4>
+                                <span class="text-xs text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider">${p.Kategori || 'General'}</span>
+                                <h4 class="font-bold text-gray-800 dark:text-gray-100 text-base mt-1 line-clamp-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition">${namaProduk}</h4>
                                 <div class="mt-2 h-12 flex flex-col justify-end">
                                     ${htmlHarga}
                                 </div>
                             </div>
                         </div>
-                        <div class="p-4 pt-0 text-center text-xs font-medium text-emerald-600 group-hover:underline">
+                        <div class="p-4 pt-0 text-center text-xs font-medium text-emerald-600 dark:text-emerald-400 group-hover:underline">
                             Lihat Detail ➔
                         </div>
                     </div>
@@ -256,12 +313,12 @@
             const container = document.getElementById('pagination-controls');
             const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
             if (totalPages <= 1) { container.innerHTML = ''; return; }
-            let controlsHtml = `<button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} class="px-3 py-2 rounded-lg text-sm font-medium border bg-white text-gray-600 hover:bg-emerald-50 disabled:opacity-40 transition">◀ Prev</button>`;
+            let controlsHtml = `<button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} class="px-3 py-2 rounded-lg text-sm font-medium border dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-200 hover:bg-emerald-50 dark:hover:bg-gray-600 disabled:opacity-40 transition">◀ Prev</button>`;
             for (let i = 1; i <= totalPages; i++) {
                 if (i === currentPage) { controlsHtml += `<button class="px-4 py-2 rounded-lg text-sm font-bold bg-emerald-600 text-white">${i}</button>`; }
-                else { controlsHtml += `<button onclick="changePage(${i})" class="px-4 py-2 rounded-lg text-sm font-medium border bg-white text-gray-600 hover:bg-emerald-50">${i}</button>`; }
+                else { controlsHtml += `<button onclick="changePage(${i})" class="px-4 py-2 rounded-lg text-sm font-medium border dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-200 hover:bg-emerald-50 dark:hover:bg-gray-600">${i}</button>`; }
             }
-            controlsHtml += `<button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} class="px-3 py-2 rounded-lg text-sm font-medium border bg-white text-gray-600 hover:bg-emerald-50 disabled:opacity-40">Next ▶</button>`;
+            controlsHtml += `<button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} class="px-3 py-2 rounded-lg text-sm font-medium border dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-200 hover:bg-emerald-50 dark:hover:bg-gray-600 disabled:opacity-40">Next ▶</button>`;
             container.innerHTML = controlsHtml;
         }
 
@@ -294,20 +351,15 @@
             const lblHargaUtama = document.getElementById('modal-harga');
 
             if (diskonValue && hargaDiskonMentah) {
-                // Atur Visual Diskon di Modal Pop-up
                 badgeModal.innerText = `-${diskonValue}%`;
                 badgeModal.classList.remove('hidden');
-                
                 lblHargaLama.innerText = `Rp ${parseInt(hargaNormalMentah).toLocaleString('id-ID')}`;
                 lblHargaLama.classList.remove('hidden');
-                
                 let formattedBaru = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(hargaDiskonMentah).replace(/\s?/g, '');
                 lblHargaUtama.innerText = formattedBaru;
             } else {
-                // Tampilan Normal Tanpa Potongan Harga
                 badgeModal.classList.add('hidden');
                 lblHargaLama.classList.add('hidden');
-                
                 let formattedNormal = "Hubungi Admin";
                 if (hargaNormalMentah) {
                     formattedNormal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(hargaNormalMentah).replace(/\s?/g, '');
@@ -331,7 +383,7 @@
             document.getElementById('modal-main-img').src = fotoArray[0] || 'https://via.placeholder.com/300?text=No+Image';
 
             document.getElementById('modal-thumbnails').innerHTML = fotoArray.map((url) => `
-                <button onclick="changeModalImage('${url}')" class="w-12 h-12 border-2 border-gray-200 rounded-md overflow-hidden flex-shrink-0 bg-white">
+                <button onclick="changeModalImage('${url}')" class="w-12 h-12 border-2 border-gray-200 dark:border-gray-700 rounded-md overflow-hidden flex-shrink-0 bg-white dark:bg-gray-800">
                     <img src="${url}" class="w-full h-full object-cover">
                 </button>
             `).join('');
@@ -342,7 +394,6 @@
         function changeModalImage(url) { document.getElementById('modal-main-img').src = url; }
         function closeModal() { document.getElementById('product-modal').classList.add('hidden'); }
 
-        /* MANAJEMEN KERANJANG BELANJA */
         function toggleCartDrawer() {
             const drawer = document.getElementById('cart-drawer');
             drawer.classList.toggle('translate-x-full');
@@ -359,10 +410,8 @@
                 const hargaKey = keys.find(k => k.toLowerCase() === 'harga') || 'Harga';
                 const hargaDiskonKey = keys.find(k => k.toLowerCase() === 'harga_diskon') || 'Harga_Diskon';
                 
-                // PRIORITAS: Ambil nominal dari kolom 'Harga_Diskon' terlebih dahulu
                 let hargaMentah = currentModalProduct[hargaDiskonKey] ? parseInt(currentModalProduct[hargaDiskonKey].replace(/[^0-9]/g, '')) : 0;
                 
-                // Fail-safe jika Harga_Diskon kosong, gunakan nilai kolom Harga normal
                 if (!hargaMentah && currentModalProduct[hargaKey]) {
                     hargaMentah = parseInt(currentModalProduct[hargaKey].replace(/[^0-9]/g, ''));
                 }
@@ -403,18 +452,18 @@
                 const formattedSub = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(subTotal).replace(/\s?/g, '');
                 
                 return `
-                    <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                    <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 pb-3">
                         <div class="flex items-center space-x-3">
-                            <img src="${item.Foto || 'https://via.placeholder.com/50'}" class="w-12 h-12 object-cover rounded-lg border">
+                            <img src="${item.Foto || 'https://via.placeholder.com/50'}" class="w-12 h-12 object-cover rounded-lg border dark:border-gray-600">
                             <div>
-                                <h4 class="font-bold text-xs text-gray-800 line-clamp-1 max-w-[180px]">${item.Nama}</h4>
-                                <p class="text-xs text-emerald-600 font-extrabold mt-0.5">${formattedSub}</p>
+                                <h4 class="font-bold text-xs text-gray-800 dark:text-gray-200 line-clamp-1 max-w-[180px]">${item.Nama}</h4>
+                                <p class="text-xs text-emerald-600 dark:text-emerald-400 font-extrabold mt-0.5">${formattedSub}</p>
                             </div>
                         </div>
-                        <div class="flex items-center space-x-2 border border-gray-200 rounded-lg p-1 bg-white shadow-sm">
-                            <button onclick="updateQty(${index}, -1)" class="px-2 py-0.5 text-xs font-bold text-gray-500 bg-gray-50 rounded hover:bg-gray-100">-</button>
-                            <span class="text-xs font-bold text-gray-800 w-4 text-center">${item.qty}</span>
-                            <button onclick="updateQty(${index}, 1)" class="px-2 py-0.5 text-xs font-bold text-gray-500 bg-gray-50 rounded hover:bg-gray-100">+</button>
+                        <div class="flex items-center space-x-2 border border-gray-200 dark:border-gray-600 rounded-lg p-1 bg-white dark:bg-gray-700 shadow-sm">
+                            <button onclick="updateQty(${index}, -1)" class="px-2 py-0.5 text-xs font-bold text-gray-500 dark:text-gray-300 bg-gray-50 dark:bg-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-500">-</button>
+                            <span class="text-xs font-bold text-gray-800 dark:text-gray-100 w-4 text-center">${item.qty}</span>
+                            <button onclick="updateQty(${index}, 1)" class="px-2 py-0.5 text-xs font-bold text-gray-500 dark:text-gray-300 bg-gray-50 dark:bg-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-500">+</button>
                         </div>
                     </div>
                 `;
@@ -450,21 +499,21 @@
             updateCartUI();
         }
 
-        function filterCategory(cat) {
-            const buttons = document.querySelectorAll('#category-filters button');
-            buttons.forEach(btn => {
-                const targetCat = btn.getAttribute('data-cat');
-                if(targetCat === cat.toLowerCase()) {
-                    btn.className = cat.toLowerCase() === 'habis' ? "px-4 py-2 rounded-full text-sm font-medium bg-red-100 border border-red-300 text-red-800 shadow-sm" : "px-4 py-2 rounded-full text-sm font-medium bg-emerald-100 border border-emerald-300 text-emerald-800 shadow-sm";
-                } else {
-                    btn.className = btn.getAttribute('data-cat') === 'habis' ? "px-4 py-2 rounded-full text-sm font-medium bg-white shadow-sm border text-red-600 border-red-200" : "px-4 py-2 rounded-full text-sm font-medium bg-white shadow-sm border text-gray-600 hover:bg-emerald-50";
-                }
-            });
-            currentPage = 1;
-            if (cat.toLowerCase() === 'habis') { filteredProducts = allProducts.filter(p => p.Status && p.Status.trim().toLowerCase() === 'kosong'); }
-            else if (cat === 'all') { filteredProducts = allProducts.filter(p => !p.Status || p.Status.trim().toLowerCase() !== 'kosong'); }
-            else { filteredProducts = allProducts.filter(p => p.Kategori && p.Kategori.trim().toLowerCase() === cat.toLowerCase() && (!p.Status || p.Status.trim().toLowerCase() !== 'kosong')); }
-            renderProducts();
+        function toggleDarkMode() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Cek preferensi tema saat load awal halaman
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
         }
 
         window.onclick = function(e) { if(e.target === document.getElementById('product-modal')) closeModal(); }
