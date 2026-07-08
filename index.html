@@ -29,9 +29,6 @@
                 </div>
             </div>
             <div class="flex items-center justify-center sm:justify-end space-x-3 sm:space-x-4 w-full sm:w-auto">
-                <button id="member-btn" onclick="openLoginModal()" class="text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl transition border border-blue-200 dark:border-blue-800 flex items-center gap-1" title="Sign In Member">
-                    👤 Sign In
-                </button>
                 <button onclick="openFaqModal()" class="text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-gray-700 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl transition border border-emerald-200 dark:border-emerald-800 flex items-center gap-1" title="Frequently Asked Questions">
                     ❓ FAQ
                 </button>
@@ -118,29 +115,6 @@
                         🛍️ Beli Lewat Tokopedia
                     </a>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="login-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full shadow-2xl relative p-6 border dark:border-gray-700">
-            <button onclick="closeLoginModal()" class="absolute top-4 right-4 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-bold h-8 w-8 rounded-full flex items-center justify-center transition">✕</button>
-            
-            <h3 class="font-extrabold text-lg text-gray-800 dark:text-white mb-2 flex items-center gap-2">👤 Sign In / Sign Up Member</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mb-5">Masukkan username dan nomor WhatsApp Anda untuk sinkronisasi otomatis alamat pengiriman.</p>
-            
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1 tracking-wider">Username</label>
-                    <input type="text" id="login-username" placeholder="Contoh: didichung" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1 tracking-wider">Nomor WhatsApp</label>
-                    <input type="tel" id="login-hp" placeholder="Contoh: 081322555224" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                </div>
-                <button onclick="handleLoginSubmit()" id="login-submit-btn" class="w-full py-3 font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition shadow-md text-sm mt-2 flex justify-center items-center gap-2">
-                    Masuk / Daftar Akun
-                </button>
             </div>
         </div>
     </div>
@@ -245,34 +219,16 @@
     </div>
 
     <div id="form-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-lg w-full shadow-2xl relative flex flex-col border dark:border-gray-700">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-3xl w-full h-[90vh] overflow-hidden shadow-2xl relative flex flex-col border dark:border-gray-700">
             <div class="p-4 border-b dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900 rounded-t-2xl">
                 <div>
                     <h3 class="font-extrabold text-base text-gray-800 dark:text-white">📝 Formulir Pengiriman Alamat</h3>
-                    <p class="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">Satu langkah lagi untuk menyelesaikan pesanan Anda.</p>
+                    <p class="text-xs text-amber-600 dark:text-amber-400 font-medium mt-0.5">💡 List belanjaan telah disalin otomatis! Silakan tempel (Paste) di kolom formulir jika dibutuhkan.</p>
                 </div>
                 <button onclick="closeFormModal()" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-bold h-8 w-8 rounded-full flex items-center justify-center transition">✕</button>
             </div>
-            <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1 tracking-wider">Nama Lengkap Penerima</label>
-                    <input type="text" id="shipping-nama" placeholder="Masukkan nama lengkap" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1 tracking-wider">Nomor WhatsApp / HP</label>
-                    <input type="tel" id="shipping-hp" placeholder="Contoh: 08123456789" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mb-1 tracking-wider">Alamat Lengkap Pengiriman</label>
-                    <textarea id="shipping-alamat" rows="3" placeholder="Nama Jalan, Nomor Rumah, RT/RW, Kecamatan, Kota, Kode Pos" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"></textarea>
-                </div>
-                <div class="p-3 bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-200 text-xs rounded-xl border border-amber-200 dark:border-amber-900 leading-relaxed">
-                    <strong>Detail Pesanan:</strong>
-                    <pre id="shipping-order-summary" class="mt-1 font-sans whitespace-pre-wrap text-[11px] bg-white/50 dark:bg-black/20 p-2 rounded border border-amber-100 dark:border-amber-950 max-h-24 overflow-y-auto"></pre>
-                </div>
-                <button onclick="submitShippingOrder()" id="shipping-submit-btn" class="w-full py-3.5 font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition shadow-md text-sm">
-                    🚀 Kirim Pesanan Sekarang via WhatsApp
-                </button>
+            <div class="flex-1 bg-white dark:bg-gray-800 relative">
+                <iframe id="google-form-iframe" src="" class="w-full h-full border-0" allow="autoplay">Memuat Form Pengiriman...</iframe>
             </div>
         </div>
     </div>
@@ -297,10 +253,6 @@
 
     <script>
         const csvUrl = "https://docs.google.com/spreadsheets/d/1AAu7tmbftfQ7C2mnqJMYCGJkj0Bqs3RWPzsTTn-sdoU/export?format=csv";
-        
-        // ⚠️ PENTING: Paste URL Web App Google Apps Script Anda di bawah ini jika sudah dideploy
-        const appsScriptUrl = "https://script.google.com/macros/s/AKfycbw4UtsIX8NA3STuRemaFlQUGeogx1DZi23ft3aq8UjDld-6zfQHHdug7iOg5CH86gatNg/exec";
-
         let allProducts = [];
         let filteredProducts = [];
         let currentCategory = 'all';
@@ -308,8 +260,8 @@
         let currentModalProduct = null;
         const itemsPerPage = 40;
         let currentPage = 1;
+        
         let isModalChangingInternal = false;
-        let currentDaftarBelanjaText = ""; 
 
         async function fetchProducts() {
             try {
@@ -319,7 +271,6 @@
                 allProducts = parseCSV(data);
                 applyFilterAndSearch();
                 handleUrlParams();
-                checkSavedMemberSession(); // Cek status login saat load halaman
             } catch (error) {
                 console.error("Error:", error);
                 document.getElementById('product-grid').innerHTML = '<p class="text-center col-span-full text-red-500 py-12">Gagal memuat katalog produk.</p>';
@@ -602,96 +553,14 @@
         function openFaqModal() { document.getElementById('faq-modal').classList.remove('hidden'); }
         function closeFaqModal() { document.getElementById('faq-modal').classList.add('hidden'); }
 
-        // --- MANIPULASI MODAL MEMBER LOGIN ---
-        function openLoginModal() { document.getElementById('login-modal').classList.remove('hidden'); }
-        function closeLoginModal() { document.getElementById('login-modal').classList.add('hidden'); }
-
-        function checkSavedMemberSession() {
-            const memberData = localStorage.getItem('figurorama_member');
-            const btn = document.getElementById('member-btn');
-            if (memberData) {
-                const member = JSON.parse(memberData);
-                btn.innerHTML = `👤 ${member.username}`;
-                btn.className = "text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-gray-700 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl transition border border-emerald-200 dark:border-emerald-800 flex items-center gap-1";
-                btn.onclick = logoutMember;
-                btn.title = "Klik untuk Logout Akun";
-            } else {
-                btn.innerHTML = `👤 Sign In`;
-                btn.className = "text-xs sm:text-sm font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl transition border border-blue-200 dark:border-blue-800 flex items-center gap-1";
-                btn.onclick = openLoginModal;
-                btn.title = "Sign In Member";
-            }
-        }
-
-        function handleLoginSubmit() {
-            const username = document.getElementById('login-username').value.trim();
-            const hp = document.getElementById('login-hp').value.trim();
-            const submitBtn = document.getElementById('login-submit-btn');
-
-            if (!username || !hp) return alert("Mohon lengkapi Username dan Nomor WhatsApp!");
-            if (appsScriptUrl.includes("SILAKAN_PASTE_URL")) {
-                return alert("Apps Script URL belum dikonfigurasi di source code!");
-            }
-
-            submitBtn.disabled = true;
-            submitBtn.innerText = "Memproses...";
-
-            fetch(appsScriptUrl, {
-                method: "POST",
-                body: JSON.stringify({ username: username, hp: hp })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === "old_member" || data.status === "new_member") {
-                    localStorage.setItem('figurorama_member', JSON.stringify(data));
-                    checkSavedMemberSession();
-                    closeLoginModal();
-                    alert(`Selamat Datang, ${data.username}! Sync database berhasil.`);
-                } else {
-                    alert("Gagal melakukan login: " + data.message);
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert("Terjadi gangguan jaringan saat menghubungkan ke Google Sheet.");
-            })
-            .finally(() => {
-                submitBtn.disabled = false;
-                submitBtn.innerText = "Masuk / Daftar Akun";
-            });
-        }
-
-        function logoutMember() {
-            if (confirm("Apakah Anda ingin logout dari akun Anda?")) {
-                localStorage.removeItem('figurorama_member');
-                checkSavedMemberSession();
-                alert("Berhasil logout.");
-            }
-        }
-
-        // --- MANIPULASI MODAL FORM ALAMAT ---
-        function openFormModal(orderText) {
-            currentDaftarBelanjaText = orderText;
-            document.getElementById('shipping-order-summary').innerText = orderText;
-            
-            // Auto-fill form jika data user ditemukan di LocalStorage
-            const savedMember = localStorage.getItem('figurorama_member');
-            if (savedMember) {
-                const member = JSON.parse(savedMember);
-                document.getElementById('shipping-nama').value = member.namaLengkap || member.username || "";
-                document.getElementById('shipping-hp').value = member.hp || "";
-                document.getElementById('shipping-alamat').value = (member.alamat === "-") ? "" : (member.alamat || "");
-            } else {
-                document.getElementById('shipping-nama').value = "";
-                document.getElementById('shipping-hp').value = "";
-                document.getElementById('shipping-alamat').value = "";
-            }
-
+        // --- MANIPULASI MODAL GOOGLE FORM ---
+        function openFormModal(finalFormUrl) {
+            document.getElementById('google-form-iframe').src = finalFormUrl;
             document.getElementById('form-modal').classList.remove('hidden');
         }
-
         function closeFormModal() {
             document.getElementById('form-modal').classList.add('hidden');
+            document.getElementById('google-form-iframe').src = "";
         }
 
         function toggleCartDrawer() {
@@ -786,58 +655,29 @@
             const formattedTotal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalHarga).replace(/\s?/g, '');
             textDaftarBelanja += `\nESTIMASI TOTAL: ${formattedTotal}`;
 
-            // Salin daftar belanja ke clipboard otomatis
+            // Menyalin teks belanjaan otomatis ke clipboard user agar gampang tinggal paste di form
             navigator.clipboard.writeText(textDaftarBelanja).then(() => {
                 console.log("Daftar belanjaan berhasil disalin ke clipboard.");
             }).catch(err => {
                 console.error("Gagal menyalin otomatis: ", err);
             });
 
-            toggleCartDrawer();
-            openFormModal(textDaftarBelanja);
-        }
+            const googleFormBaseUrl = "https://docs.google.com/forms/d/e/1FAIpQLScTvb6mu8UMKg7zSidM6mFSNx-mo8cya-Aw9mJnmQbun-69Ew/viewform?usp=pp_url&entry.89159163=";
+            const formUrlFinal = googleFormBaseUrl + encodeURIComponent(textDaftarBelanja);
 
-        function submitShippingOrder() {
-            const username = document.getElementById('shipping-username').value.trim().toLowerCase();
-            const nama = document.getElementById('shipping-nama').value.trim();
-            const hp = document.getElementById('shipping-hp').value.trim();
-            const alamat = document.getElementById('shipping-alamat').value.trim();
+            const pesanWA = encodeURIComponent(`Halo Admin Figurorama, saya ingin memesan item berikut melalui keranjang web:\n\n${textDaftarBelanja}\n\nSaya akan mengisi alamat di halaman form berikutnya.`);
+            const waUrlFinal = `https://wa.me/6281322555224?text=${pesanWA}`;
 
-            if (!username || !nama || !hp || !alamat) return alert("Mohon lengkapi seluruh formulir data!");
-
-            // Simpan sesi lokal
-            let currentSession = { username: username, hp: hp, namaLengkap: nama, alamat: alamat };
-            localStorage.setItem('figurorama_member', JSON.stringify(currentSession));
-            checkSavedMemberSession();
-
-            // SEKARANG DATA PESANAN UTUH IKUT DIKIRIM KE APPS SCRIPT
-            if (appsScriptUrl !== "https://script.google.com/macros/s/AKfycbyDrSBmS3TgnI72c-egAz8E0pO3CsBUkVMAxWr0gaL0lI_5ONjo1Uur3mWB71GbD7wjJw/exec") {
-                fetch(appsScriptUrl, {
-                    method: "POST",
-                    body: JSON.stringify({ 
-                        username: username, 
-                        hp: hp, 
-                        namaLengkap: nama, 
-                        alamat_lengkap: alamat,
-                        daftar_belanja: currentDaftarBelanjaText, // Data barang belanjaan masuk ke sini!
-                        total_harga: document.getElementById('cart-total-price').innerText
-                    })
-                })
-                .then(res => res.json())
-                .then(resData => console.log("Database Sync:", resData.message))
-                .catch(e => console.error("Database Error:", e));
-            }
-
-            // Jalankan alur WhatsApp Admin
-            const textWhatsAppFinal = `Halo Admin Figurorama, saya ingin melakukan pemesanan:\n\n${currentDaftarBelanjaText}\n\n📍 DETAIL PENGIRIMAN:\n• Nama: ${nama}\n• WhatsApp: ${hp}\n• Alamat: ${alamat}`;
-            const waUrlFinal = `https://wa.me/6281322555224?text=${encodeURIComponent(textWhatsAppFinal)}`;
-            
+            // 1. Buka Chat WhatsApp di tab baru agar tidak memutus sesi web utama
             window.open(waUrlFinal, '_blank');
             
-            closeFormModal();
+            // 2. Tutup Drawer Keranjang & Buka Google Form di dalam Modal internal
+            toggleCartDrawer();
+            openFormModal(formUrlFinal);
+            
+            // Bersihkan keranjang belanja setelah checkout
             cart = [];
             updateCartUI();
-            alert("Pesanan sukses diteruskan ke WhatsApp dan data pesanan Anda telah dicatat di Antrean!");
         }
 
         function toggleDarkMode() {
@@ -859,7 +699,6 @@
         window.onclick = function(e) { 
             if(e.target === document.getElementById('product-modal')) closeModal(); 
             if(e.target === document.getElementById('faq-modal')) closeFaqModal();
-            if(e.target === document.getElementById('login-modal')) closeLoginModal();
             if(e.target === document.getElementById('form-modal')) closeFormModal();
         }
         window.onload = fetchProducts;
