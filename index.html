@@ -45,7 +45,6 @@
             <h2 class="text-3xl font-extrabold text-gray-800 dark:text-white mb-2">Welcome to Figurorama Online Store</h2>
             <p class="text-gray-600 dark:text-gray-300 mb-6">Tambahkan produk ke keranjang untuk melakukan *multiple order* sekaligus dengan mudah, aman, dan praktis.</p>
             
-            <!-- KOLOM SEARCH -->
             <div class="max-w-md mx-auto mb-6 relative">
                 <input type="text" id="search-input" oninput="handleSearch()" placeholder="Cari produk favorit Anda..." class="w-full px-5 py-3 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition">
                 <span class="absolute right-4 top-3.5 text-gray-400">🔍</span>
@@ -101,7 +100,7 @@
                     <button id="modal-add-cart-btn" onclick="addToCartFromModal()" class="w-full text-center py-3 font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition shadow-sm">
                         🛒 Tambah ke Keranjang Belanja
                     </button>
-                    <a id="modal-tokped-btn" href="#" target="_blank" class="w-full text-center py-3 font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition shadow-sm">
+                    <a id="modal-tokped-btn" href="#" target="_blank" class="w-full text-center py-3 font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-100 transition shadow-sm">
                         🛍️ Cari Produk ini di Tokopedia
                     </a>
                 </div>
@@ -509,8 +508,8 @@
             }
         }
 
-        // Cek preferensi tema saat load awal halaman
-        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        // Cek preferensi tema saat load awal halaman (Default Light Mode jika belum ada pilihan di local storage)
+        if (localStorage.getItem('theme') === 'dark') {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
