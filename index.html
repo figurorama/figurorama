@@ -25,7 +25,7 @@
                 <img src="logo.jpg" alt="Figurorama Logo" class="h-12 w-12 object-cover rounded-full border border-gray-200 dark:border-gray-700" onerror="this.src='https://via.placeholder.com/50?text=F'">
                 <div>
                     <h1 class="font-bold text-xl tracking-wide text-gray-800 dark:text-white">FIGURORAMA</h1>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Action Figures & Collectibles Catalog</p>
+                    <p id="welcome-member" class="text-xs text-gray-500 dark:text-gray-400">Action Figures & Collectibles Catalog</p>
                 </div>
             </div>
             <div class="flex items-center justify-center sm:justify-end space-x-3 sm:space-x-4 w-full sm:w-auto">
@@ -182,7 +182,6 @@
         </div>
     </div>
 
-    <!-- MODAL FORM MANDIRI BARU: MENGGANTIKAN GOOGLE FORM SEPENUHNYA -->
     <div id="form-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full shadow-2xl relative flex flex-col border dark:border-gray-700 overflow-hidden">
             <div class="p-4 border-b dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900">
@@ -239,7 +238,7 @@
         let currentPage = 1;
         
         let isModalChangingInternal = false;
-        let globalTextDaftarBelanja = ""; // Menyimpan cache rekap barang belanja
+        let globalTextDaftarBelanja = "";
 
         async function fetchProducts() {
             try {
@@ -552,13 +551,32 @@
             }
         }
 
-        // --- MANIPULASI FORM MODAL INTERNAL ---
+        // --- SISTEM DETEKSI MEMBER LAMA & AUTOFILL FORM ---
+        function checkReturnMember() {
+            const savedNama = localStorage.getItem('member_nama');
+            const savedHp = localStorage.getItem('member_hp');
+            const savedAlamat = localStorage.getItem('member_alamat');
+
+            const welcomeElement = document.getElementById('welcome-member');
+
+            if (savedNama && welcomeElement) {
+                welcomeElement.innerHTML = `👋 Halo, <span class="font-bold text-emerald-600 dark:text-emerald-400">${savedNama}</span> (Member Toko)`;
+                
+                if(document.getElementById('form-nama')) document.getElementById('form-nama').value = savedNama;
+                if(document.getElementById('form-hp')) document.getElementById('form-hp').value = savedHp;
+                if(document.getElementById('form-alamat')) document.getElementById('form-alamat').value = savedAlamat;
+            }
+        }
+
         function openFormModal() {
             document.getElementById('form-modal').classList.remove('hidden');
+            // Lakukan autofill ulang data setiap kali modal pengiriman dibuka
+            checkReturnMember();
         }
+
         function closeFormModal(isFromPopstate = false) {
             document.getElementById('form-modal').classList.add('hidden');
-            document.getElementById('internal-shipping-form').reset();
+            // Jangan reset form agar data autofill tetap ada untuk kenyamanan
             if (!isFromPopstate && window.history.state && window.history.state.type === 'form') {
                 isModalChangingInternal = true;
                 window.history.back();
@@ -656,7 +674,6 @@
             document.getElementById('cart-total-price').innerText = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalHarga).replace(/\s?/g, '');
         }
 
-        // --- AMBIL LIST BARANG DI SINI & BUKA MODAL FORM INTERNAL ---
         function checkoutCart() {
             if (cart.length === 0) return alert("Keranjang Anda kosong!");
 
@@ -676,46 +693,53 @@
             }
             
             toggleCartDrawer(true);
-            openFormModal(); // Buka form data pengiriman custom
+            openFormModal();
         }
 
-        // --- PROSES INTEGRASI FORM MANDIRI KE GOOGLE SHEETS & WHATSAPP ---
-async function handleFormSubmit(event) {
-    event.preventDefault(); // Mencegah reload halaman web
+        // --- PROSES INTEGRASI FORM MANDIRI KE GOOGLE SHEETS, LOCALSTORAGE, & WHATSAPP ---
+        async function handleFormSubmit(event) {
+            event.preventDefault();
 
-    const namaPembeli = document.getElementById('form-nama').value.trim();
-    const hpPembeli = document.getElementById('form-hp').value.trim();
-    const alamatPembeli = document.getElementById('form-alamat').value.trim();
+            const namaPembeli = document.getElementById('form-nama').value.trim();
+            const hpPembeli = document.getElementById('form-hp').value.trim();
+            const alamatPembeli = document.getElementById('form-alamat').value.trim();
 
-    // 1. GANTI URL DI BAWAH INI DENGAN WEB APP URL YANG ANDA SALIN DARI LANGKAH 1
-    const googleSheetsWebAppUrl = "https://script.google.com/macros/s/AKfycbzHuxISNMQCdAmlE0Q5XB5eBGlfXoW4vqETpGIMqRn8zUf4ebSLhjNFnw8SMmp0rmHMrQ/exec";
+            // SIMPAN DATA MEMBER DI LOKAL BROWSER PEMBELI
+            localStorage.setItem('member_nama', namaPembeli);
+            localStorage.setItem('member_hp', hpPembeli);
+            localStorage.setItem('member_alamat', alamatPembeli);
 
-    // Mengubah tombol menjadi loading saat mengirim data ke Google Sheets
-    const submitBtn = event.target.querySelector('button[type="submit"]');
-    const originalBtnText = submitBtn.innerHTML;
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = "⏳ Menyimpan data & Menghubungkan ke WA...";
+            // Perbarui sapaan header secara langsung tanpa reload halaman
+            const welcomeElement = document.getElementById('welcome-member');
+            if (welcomeElement) {
+                welcomeElement.innerHTML = `👋 Halo, <span class="font-bold text-emerald-600 dark:text-emerald-400">${namaPembeli}</span> (Member Toko)`;
+            }
 
-    try {
-        // Kirim data ke Google Sheets secara background (Asynchronous)
-        await fetch(googleSheetsWebAppUrl, {
-            method: 'POST',
-            mode: 'no-cors', // Diperlukan agar tidak terkena CORS policy browser
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                nama: namaPembeli,
-                hp: hpPembeli,
-                alamat: alamatPembeli,
-                belanjaan: globalTextDaftarBelanja
-            })
-        });
-        console.log("Data berhasil dikirim ke Google Sheets.");
-    } catch (error) {
-        console.error("Gagal mengirim ke Google Sheets:", error);
-    }
+            const googleSheetsWebAppUrl = "https://script.google.com/macros/s/AKfycbzHuxISNMQCdAmlE0Q5XB5eBGlfXoW4vqETpGIMqRn8zUf4ebSLhjNFnw8SMmp0rmHMrQ/exec";
 
-    // 2. MENYUSUN FORMAT TEXT UNTUK WHATSAPP ADMIN
-    const templatePesanWA = `Halo Admin Figurorama, saya ingin memesan item berikut:
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = "⏳ Menyimpan data & Menghubungkan ke WA...";
+
+            try {
+                await fetch(googleSheetsWebAppUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nama: namaPembeli,
+                        hp: hpPembeli,
+                        alamat: alamatPembeli,
+                        belanjaan: globalTextDaftarBelanja
+                    })
+                });
+                console.log("Data berhasil dikirim ke Google Sheets.");
+            } catch (error) {
+                console.error("Gagal mengirim ke Google Sheets:", error);
+            }
+
+            const templatePesanWA = `Halo Admin Figurorama, saya ingin memesan item berikut:
 
 ${globalTextDaftarBelanja}
 
@@ -728,20 +752,18 @@ ${globalTextDaftarBelanja}
 
 Mohon dihitung total ongkirnya ya Admin, terima kasih!`;
 
-    const finalWaUrl = `https://wa.me/6281322555224?text=${encodeURIComponent(templatePesanWA)}`;
-    
-    // Buka tab WhatsApp
-    window.open(finalWaUrl, '_blank');
+            const finalWaUrl = `https://wa.me/6281322555224?text=${encodeURIComponent(templatePesanWA)}`;
+            
+            window.open(finalWaUrl, '_blank');
 
-    // Kembalikan status tombol dan bersihkan keranjang
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = originalBtnText;
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
 
-    cart = [];
-    globalTextDaftarBelanja = "";
-    updateCartUI();
-    closeFormModal();
-}
+            cart = [];
+            globalTextDaftarBelanja = "";
+            updateCartUI();
+            closeFormModal();
+        }
 
         function toggleDarkMode() {
             if (document.documentElement.classList.contains('dark')) {
@@ -764,7 +786,11 @@ Mohon dihitung total ongkirnya ya Admin, terima kasih!`;
             if(e.target === document.getElementById('faq-modal')) closeFaqModal();
             if(e.target === document.getElementById('form-modal')) closeFormModal();
         }
-        window.onload = fetchProducts;
+        
+        window.onload = function() {
+            fetchProducts();
+            checkReturnMember(); // Periksa status member saat website dimuat pertama kali
+        };
     </script>
 </body>
 </html>
