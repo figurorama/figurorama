@@ -234,9 +234,29 @@
                     <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">Nomor WhatsApp / HP *</label>
                     <input type="tel" id="form-hp" required placeholder="Contoh: 0812345678" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
                 </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">Provinsi Tujuan *</label>
+                    <select id="form-provinsi" onchange="loadKota()" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="">Pilih Provinsi</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">Kota / Kabupaten Tujuan *</label>
+                    <select id="form-kota" onchange="hitungOngkir()" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="">Pilih provinsi terlebih dahulu</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">Opsi Pengiriman (JNE) *</label>
+                    <select id="form-layanan-ongkir" onchange="updateTotalDenganOngkir()" required class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="">Pilih kota terlebih dahulu</option>
+                    </select>
+                </div>
+
                 <div>
                     <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">Alamat Lengkap Pengiriman *</label>
-                    <textarea id="form-alamat" required rows="3" placeholder="Nama Jalan, No. Rumah, RT/RW, Kecamatan, Kota, Kode Pos" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"></textarea>
+                    <textarea id="form-alamat" required rows="3" placeholder="Nama Jalan, No. Rumah, RT/RW, Kecamatan, Kode Pos" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"></textarea>
                 </div>
                 
                 <button type="submit" class="w-full text-center py-3.5 font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition shadow-md flex items-center justify-center gap-2 text-sm mt-4">
@@ -265,6 +285,8 @@
 
     <script>
         const csvUrl = "https://docs.google.com/spreadsheets/d/1AAu7tmbftfQ7C2mnqJMYCGJkj0Bqs3RWPzsTTn-sdoU/export?format=csv";
+        const googleSheetsWebAppUrl = "https://script.google.com/macros/s/AKfycbzS4tPCC30jsbzo_5FrJ4seXuOhoYf6dLs2gjTltN_smhNsJNi20-x0Bxvhmh2uYGhKMg/exec";
+        
         let allProducts = [];
         let filteredProducts = [];
         let currentCategory = 'all';
@@ -275,6 +297,10 @@
         
         let isModalChangingInternal = false;
         let globalTextDaftarBelanja = "";
+        
+        // State Global Tambahan RajaOngkir
+        let ongkirTerpilih = 0;
+        let teksKurirTerpilih = "";
 
         async function fetchProducts() {
             try {
@@ -532,6 +558,10 @@
             }
         }
 
+        document.addEventListener("DOMContentLoaded", function() {
+            handleUrlParams();
+        });
+
         function handleUrlParams() {
             const urlParams = new URLSearchParams(window.location.search);
             const productParam = urlParams.get('produk');
@@ -606,13 +636,12 @@
 
         function openFormModal() {
             document.getElementById('form-modal').classList.remove('hidden');
-            // Lakukan autofill ulang data setiap kali modal pengiriman dibuka
             checkReturnMember();
+            loadProvinsi(); // Pemicu otomatis load wilayah RajaOngkir
         }
 
         function closeFormModal(isFromPopstate = false) {
             document.getElementById('form-modal').classList.add('hidden');
-            // Jangan reset form agar data autofill tetap ada untuk kenyamanan
             if (!isFromPopstate && window.history.state && window.history.state.type === 'form') {
                 isModalChangingInternal = true;
                 window.history.back();
@@ -722,7 +751,7 @@
                 globalTextDaftarBelanja += `${idx + 1}. ${item.Nama} (Qty: ${item.qty}) - Subtotal: ${formattedSub}\n`;
             });
             const formattedTotal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalHarga).replace(/\s?/g, '');
-            globalTextDaftarBelanja += `\nESTIMASI TOTAL: ${formattedTotal}`;
+            globalTextDaftarBelanja += `\nESTIMASI TOTAL BARANG: ${formattedTotal}`;
 
             if(window.history.state && window.history.state.type === 'cart') {
                 window.history.replaceState({ modalOpen: true, type: 'form' }, '', window.location.href);
@@ -732,65 +761,150 @@
             openFormModal();
         }
 
-        // --- PROSES INTEGRASI FORM MANDIRI KE GOOGLE SHEETS, LOCALSTORAGE, & WHATSAPP ---
+        // --- SISTEM FUNGSI KOMUNIKASI RAJAONGKIR VIA PROXY GOOGLE APPS SCRIPT ---
+        async function loadProvinsi() {
+            const provSelect = document.getElementById('form-provinsi');
+            provSelect.innerHTML = '<option value="">Memuat provinsi...</option>';
+            try {
+                const res = await fetch(`${googleSheetsWebAppUrl}?action=getProvinsi`);
+                const data = await res.json();
+                provSelect.innerHTML = '<option value="">Pilih Provinsi</option>' + 
+                    data.rajaongkir.results.map(p => `<option value="${p.province_id}">${p.province}</option>`).join('');
+            } catch(err) {
+                console.error(err);
+                provSelect.innerHTML = '<option value="">Gagal memuat provinsi</option>';
+            }
+        }
+
+        async function loadKota() {
+            const provId = document.getElementById('form-provinsi').value;
+            const kotaSelect = document.getElementById('form-kota');
+            if(!provId) return;
+            
+            kotaSelect.innerHTML = '<option value="">Memuat kota...</option>';
+            try {
+                const res = await fetch(`${googleSheetsWebAppUrl}?action=getKota&provinsi=${provId}`);
+                const data = await res.json();
+                kotaSelect.innerHTML = '<option value="">Pilih Kota / Kabupaten</option>' + 
+                    data.rajaongkir.results.map(k => `<option value="${k.city_id}">${k.type} ${k.city_name}</option>`).join('');
+            } catch(err) {
+                console.error(err);
+                kotaSelect.innerHTML = '<option value="">Gagal memuat kota</option>';
+            }
+        }
+
+        async function hitungOngkir() {
+            const kotaTujuan = document.getElementById('form-kota').value;
+            const layananSelect = document.getElementById('form-layanan-ongkir');
+            if(!kotaTujuan) return;
+
+            layananSelect.innerHTML = '<option value="">Menghitung biaya ongkir...</option>';
+            
+            // Hitung estimasi berat total (Contoh: per item di keranjang diasumsikan 500 gram)
+            const totalBerat = cart.reduce((sum, item) => sum + (item.qty * 500), 0);
+
+            try {
+                const res = await fetch(`${googleSheetsWebAppUrl}?action=getCost&destination=${kotaTujuan}&weight=${totalBerat}`);
+                const data = await res.json();
+                
+                layananSelect.innerHTML = '<option value="">Pilih Layanan Pengiriman</option>';
+                if(data.rajaongkir.results && data.rajaongkir.results[0]) {
+                    const kurir = data.rajaongkir.results[0];
+                    kurir.costs.forEach(c => {
+                        const opsiTeks = `JNE - ${c.service} (Rp ${c.cost[0].value.toLocaleString('id-ID')}) Est: ${c.cost[0].etd} hari`;
+                        layananSelect.innerHTML += `<option value="${c.cost[0].value}" data-kurir="JNE ${c.service}">${opsiTeks}</option>`;
+                    });
+                } else {
+                    layananSelect.innerHTML = '<option value="">Layanan tidak tersedia</option>';
+                }
+            } catch(err) {
+                console.error(err);
+                layananSelect.innerHTML = '<option value="">Gagal menghitung ongkir</option>';
+            }
+        }
+
+        function updateTotalDenganOngkir() {
+            const selectLayanan = document.getElementById('form-layanan-ongkir');
+            ongkirTerpilih = parseInt(selectLayanan.value) || 0;
+            
+            const selectedOption = selectLayanan.options[selectLayanan.selectedIndex];
+            teksKurirTerpilih = selectedOption.getAttribute('data-kurir') || "";
+        }
+
+        // --- PROSES SUBMIT FORM DAN INTEGRASI AKHIR ---
         async function handleFormSubmit(event) {
-    event.preventDefault();
+            event.preventDefault();
 
-    const namaPembeli = document.getElementById('form-nama').value.trim();
-    const hpPembeli = document.getElementById('form-hp').value.trim();
-    const alamatPembeli = document.getElementById('form-alamat').value.trim();
+            const namaPembeli = document.getElementById('form-nama').value.trim();
+            const hpPembeli = document.getElementById('form-hp').value.trim();
+            const alamatPembeli = document.getElementById('form-alamat').value.trim();
+            
+            const selectProv = document.getElementById('form-provinsi');
+            const namaProvinsi = selectProv.options[selectProv.selectedIndex].text;
+            
+            const selectKota = document.getElementById('form-kota');
+            const namaKota = selectKota.options[selectKota.selectedIndex].text;
 
-    // 1. SIMPAN DATA MEMBER DI LOKAL BROWSER PEMBELI
-    localStorage.setItem('member_nama', namaPembeli);
-    localStorage.setItem('member_hp', hpPembeli);
-    localStorage.setItem('member_alamat', alamatPembeli);
+            // 1. SIMPAN DATA MEMBER DI LOKAL BROWSER PEMBELI
+            localStorage.setItem('member_nama', namaPembeli);
+            localStorage.setItem('member_hp', hpPembeli);
+            localStorage.setItem('member_alamat', `${alamatPembeli}, ${namaKota}, ${namaProvinsi}`);
 
-    // Perbarui sapaan header secara langsung
-    const welcomeElement = document.getElementById('welcome-member');
-    if (welcomeElement) {
-        welcomeElement.innerHTML = `👋 Halo, <span class="font-bold text-emerald-600 dark:text-emerald-400">${namaPembeli}</span> (Member Toko)`;
-    }
+            // Perbarui sapaan header secara langsung
+            const welcomeElement = document.getElementById('welcome-member');
+            if (welcomeElement) {
+                welcomeElement.innerHTML = `👋 Halo, <span class="font-bold text-emerald-600 dark:text-emerald-400">${namaPembeli}</span> (Member Toko)`;
+            }
 
-    const googleSheetsWebAppUrl = "https://script.google.com/macros/s/AKfycbzHuxISNMQCdAmlE0Q5XB5eBGlfXoW4vqETpGIMqRn8zUf4ebSLhjNFnw8SMmp0rmHMrQ/exec";
+            // Hitung total akhir gabungan belanja + ongkir
+            const totalHargaBarang = cart.reduce((sum, item) => sum + (item.Harga * item.qty), 0);
+            const totalAkhirSemua = totalHargaBarang + ongkirTerpilih;
+            const formattedTotalAkhir = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalAkhirSemua).replace(/\s?/g, '');
 
-    // 2. SIAPKAN TEMPLATE PESAN WHATSAPP
-    const templatePesanWA = `Halo Admin Figurorama, saya ingin memesan item berikut:
+            // 2. SIAPKAN TEMPLATE PESAN WHATSAPP DENGAN ONGKIR SPECIFIC
+            const templatePesanWA = `Halo Admin Figurorama, saya ingin memesan item berikut:
 
 ${globalTextDaftarBelanja}
+📦 Ongkos Kirim: Rp ${ongkirTerpilih.toLocaleString('id-ID')} (${teksKurirTerpilih})
+💰 TOTAL KESELURUHAN: ${formattedTotalAkhir}
 
 ---------------------------------------
 👤 DATA LENGKAP PENGIRIMAN:
 • Nama: ${namaPembeli}
 • No. HP: ${hpPembeli}
 • Alamat: ${alamatPembeli}
+• Kota/Kab: ${namaKota}
+• Provinsi: ${namaProvinsi}
 ---------------------------------------
 
-Mohon dihitung total ongkirnya ya Admin, terima kasih!`;
+Saya akan segera melakukan transfer ke rekening BCA toko, mohon dikonfirmasi ya Admin, terima kasih!`;
 
-    const finalWaUrl = `https://wa.me/6281322555224?text=${encodeURIComponent(templatePesanWA)}`;
-    
-    // 3. LANGSUNG BUKA WHATSAPP (INSTANT/TANPA MENUNGGU GOOGLE SHEETS)
-    window.open(finalWaUrl, '_blank');
+            const finalWaUrl = `https://wa.me/6281322555224?text=${encodeURIComponent(templatePesanWA)}`;
+            
+            // 3. LANGSUNG BUKA WHATSAPP (INSTANT/TANPA MENUNGGU GOOGLE SHEETS)
+            window.open(finalWaUrl, '_blank');
 
-    // 4. KIRIM KE GOOGLE SHEETS DI LATAR BELAKANG (TIDAK MEMBLOKIR ALUR)
-    fetch(googleSheetsWebAppUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            nama: namaPembeli,
-            hp: hpPembeli,
-            alamat: alamatPembeli,
-            belanjaan: globalTextDaftarBelanja
-        })
-    }).catch(error => console.error("Gagal mengirim ke Google Sheets di background:", error));
+            // 4. KIRIM KE GOOGLE SHEETS DI LATAR BELAKANG (TIDAK MEMBLOKIR ALUR)
+            fetch(googleSheetsWebAppUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nama: namaPembeli,
+                    hp: hpPembeli,
+                    alamat: `${alamatPembeli}, ${namaKota}, ${namaProvinsi} (${teksKurirTerpilih} - Rp ${ongkirTerpilih.toLocaleString('id-ID')})`,
+                    belanjaan: globalTextDaftarBelanja + `\nTotal Akhir + Ongkir: ${formattedTotalAkhir}`
+                })
+            }).catch(error => console.error("Gagal mengirim ke Google Sheets di background:", error));
 
-    // 5. BERSIHKAN KERANJANG DAN MODAL SECARA INSTAN
-    cart = [];
-    globalTextDaftarBelanja = "";
-    updateCartUI();
-    closeFormModal();
-}
+            // 5. BERSIHKAN KERANJANG DAN MODAL SECARA INSTAN
+            cart = [];
+            globalTextDaftarBelanja = "";
+            ongkirTerpilih = 0;
+            teksKurirTerpilih = "";
+            updateCartUI();
+            closeFormModal();
+        }
 
         function toggleDarkMode() {
             if (document.documentElement.classList.contains('dark')) {
@@ -816,7 +930,7 @@ Mohon dihitung total ongkirnya ya Admin, terima kasih!`;
         
         window.onload = function() {
             fetchProducts();
-            checkReturnMember(); // Periksa status member saat website dimuat pertama kali
+            checkReturnMember();
         };
     </script>
 </body>
