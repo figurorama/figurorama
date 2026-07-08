@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Figurorama - Order Manager & Label Printer</title>
+    <title>Figurorama - Order Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Desain Khusus untuk Cetak Kertas */
         @media print {
             body * { visibility: hidden; background: white !important; }
             #print-area, #print-area * { visibility: visible; }
-            #print-area { position: absolute; left: 0; top: 0; width: 100%; max-width: 100%; border: none !important; padding: 0; }
+            #print-area { position: absolute; left: 0; top: 0; width: 100%; border: none !important; padding: 0; }
             .no-print { display: none !important; }
         }
     </style>
@@ -33,29 +32,22 @@
     <main class="max-w-6xl mx-auto px-4 py-8 no-print">
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="font-extrabold text-xl text-gray-800 flex items-center gap-2">
-                    📦 Antrean Pesanan Pelanggan
-                </h2>
-                <button onclick="fetchOrders()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-sm transition shadow-sm">
-                    🔄 Refresh Data
-                </button>
+                <h2 class="font-extrabold text-xl text-gray-800 flex items-center gap-2">📦 Antrean Pesanan</h2>
+                <button onclick="fetchOrders()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-sm transition">🔄 Refresh</button>
             </div>
-
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="border-b border-gray-200 text-gray-400 text-sm uppercase font-bold bg-gray-50">
-                            <th class="py-3 px-4 w-[15%]">Waktu</th>
-                            <th class="py-3 px-4 w-[20%]">Nama Pelanggan</th>
-                            <th class="py-3 px-4 w-[35%]">Produk Pesanan</th>
-                            <th class="py-3 px-4 w-[20%]">Alamat Pengiriman</th>
-                            <th class="py-3 px-4 text-center w-[10%]">Aksi</th>
+                            <th class="py-3 px-4">Waktu</th>
+                            <th class="py-3 px-4">Nama (No HP)</th>
+                            <th class="py-3 px-4">Produk</th>
+                            <th class="py-3 px-4">Alamat</th>
+                            <th class="py-3 px-4 text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="order-table-body" class="text-sm divide-y divide-gray-100">
-                        <tr>
-                            <td colspan="5" class="text-center py-8 text-gray-400">Memuat data pesanan dari Google Sheets...</td>
-                        </tr>
+                        <tr><td colspan="5" class="text-center py-8 text-gray-400">Memuat data...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -63,40 +55,19 @@
     </main>
 
     <div id="print-area" class="hidden fixed inset-0 bg-white flex items-center justify-center p-4 z-50">
-        <div class="w-[500px] border-4 border-dashed border-gray-800 p-6 bg-white rounded-md font-sans text-gray-900">
-            
+        <div class="w-[500px] border-4 border-dashed border-gray-800 p-6 bg-white rounded-md font-sans">
             <div class="flex items-center justify-between border-b-2 border-gray-800 pb-4 mb-4">
-                <div class="flex items-center space-x-3">
-                    <img src="images/logo.jpg" alt="Logo" class="h-14 w-14 object-cover rounded-full border border-gray-400" onerror="this.src='logo.jpg'">
-                    <div>
-                        <h2 class="font-black text-2xl tracking-wider text-black">FIGURORAMA</h2>
-                        <p class="text-xs font-semibold text-gray-600">Action Figures & Collectibles</p>
-                    </div>
-                </div>
-                <div class="text-right text-xs font-bold text-gray-500">
-                    <p>Semarang, Indonesia</p>
-                    <p>0813-2255-5224</p>
-                </div>
+                <h2 class="font-black text-2xl tracking-wider">FIGURORAMA</h2>
+                <div class="text-right text-xs font-bold text-gray-500"><p>Semarang</p><p>0813-2255-5224</p></div>
             </div>
-
             <div class="space-y-4">
-                <div>
-                    <span class="text-xs font-bold text-gray-500 block uppercase tracking-wide">Kepada Penerima:</span>
-                    <h3 id="lbl-penerima" class="text-xl font-black text-black mt-0.5">Nama & No HP</h3>
-                </div>
-
+                <div><span class="text-xs font-bold text-gray-500 uppercase">Kepada Penerima:</span>
+                    <h3 id="lbl-penerima" class="text-xl font-black mt-0.5">Nama & No HP</h3></div>
                 <div class="bg-gray-50 p-3 rounded border border-gray-300">
-                    <span class="text-xs font-bold text-gray-500 block uppercase tracking-wide mb-0.5">Alamat Tujuan:</span>
-                    <p id="lbl-alamat" class="text-sm font-medium leading-relaxed text-gray-900 whitespace-pre-line">Alamat Lengkap Pembeli</p>
-                </div>
-
-                <div class="border-t-2 border-gray-800 pt-3 flex flex-col space-y-2">
-                    <span class="text-xs font-bold text-gray-500 block uppercase tracking-wide">Isi Paket:</span>
-                    <div class="flex justify-between items-start gap-4">
-                        <p id="lbl-produk" class="text-xs font-bold text-emerald-950 whitespace-pre-line bg-gray-50 p-2.5 rounded border border-gray-200 leading-tight flex-1">Nama Produk</p>
-                        <div class="border border-black px-3 py-1 font-mono text-xs font-bold rounded bg-gray-100 flex-shrink-0">FR-PACK</div>
-                    </div>
-                </div>
+                    <span class="text-xs font-bold text-gray-500 uppercase">Alamat:</span>
+                    <p id="lbl-alamat" class="text-sm font-medium mt-1"></p></div>
+                <div><span class="text-xs font-bold text-gray-500 uppercase">Isi Paket:</span>
+                    <p id="lbl-produk" class="text-sm font-bold text-emerald-900 mt-1"></p></div>
             </div>
         </div>
     </div>
@@ -107,86 +78,53 @@
         async function fetchOrders() {
             const tbody = document.getElementById('order-table-body');
             try {
-                const response = await fetch(orderCsvUrl);
-                if (!response.ok) throw new Error("Gagal mengambil data.");
-                const rawText = await response.text();
-                const orders = parseCSVAdvanced(rawText);
-                
-                if (orders.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-400">Belum ada pesanan.</td></tr>';
-                    return;
+                const res = await fetch(orderCsvUrl);
+                const text = await res.text();
+                let r = [], row = ['']; let q = false;
+                for (let i = 0; i < text.length; i++) {
+                    let c = text[i], next = text[i+1];
+                    if (c === '"') { if (q && next === '"') { row[row.length - 1] += '"'; i++; } else { q = !q; } }
+                    else if (c === ',' && !q) { row.push(''); }
+                    else if ((c === '\r' || c === '\n') && !q) { if (c === '\r' && next === '\n') i++; r.push(row); row = ['']; }
+                    else { row[row.length - 1] += c; }
                 }
+                r.push(row);
+                const headers = r[0].map(h => h.trim());
+                const orders = r.slice(1).filter(row => row.length === headers.length).map(row => {
+                    let obj = {}; headers.forEach((h, i) => obj[h] = row[i]); return obj;
+                }).reverse();
 
-                orders.reverse();
-                const keys = Object.keys(orders[0]);
-                const timeKey = keys[0];
-                const namaKey = keys.find(k => k.toLowerCase().includes('nama')) || keys[1];
-                const hpKey = keys.find(k => k.toLowerCase().includes('hp') || k.toLowerCase().includes('telepon')) || keys[4];
-                const alamatKey = keys.find(k => k.toLowerCase().includes('alamat')) || keys[2];
-                const produkKey = keys.find(k => k.toLowerCase().includes('produk')) || keys[3];
-
-                tbody.innerHTML = orders.map((ord) => {
-                    const cleanProduk = (ord[produkKey] || '-').trim();
-                    const cleanAlamat = (ord[alamatKey] || '-').trim();
-                    const namaLengkap = `${ord[namaKey] || ''} (${ord[hpKey] || 'No HP Kosong'})`.trim();
+                tbody.innerHTML = orders.map(ord => {
+                    const time = ord[headers[0]];
+                    const nama = ord[headers[1]];
+                    const hp = ord[headers[4]] || 'No HP Kosong';
+                    const alamat = ord[headers[2]];
+                    const rawProduk = ord[headers[3]];
+                    
+                    // LANGSUNG POTONG: Ambil teks sebelum ketemu kata "harga", "subtotal", "total", "estimasi", atau "rp"
+                    const produkBersih = rawProduk.split(/(subtotal|total|estimasi|harga|rp|ongkir)/i)[0].trim();
 
                     return `
-                        <tr class="hover:bg-gray-50 transition border-b border-gray-100">
-                            <td class="py-4 px-4 text-gray-500 text-xs">${ord[timeKey] || '-'}</td>
-                            <td class="py-4 px-4 font-bold text-gray-800">${namaLengkap}</td>
-                            <td class="py-4 px-4 font-medium text-emerald-700 text-xs leading-relaxed">${cleanProduk}</td>
-                            <td class="py-4 px-4 text-gray-600 text-xs whitespace-pre-line max-w-xs">${cleanAlamat}</td>
+                        <tr class="border-b">
+                            <td class="py-4 px-4">${time}</td>
+                            <td class="py-4 px-4 font-bold">${nama} (${hp})</td>
+                            <td class="py-4 px-4 text-emerald-700">${produkBersih}</td>
+                            <td class="py-4 px-4 text-xs">${alamat}</td>
                             <td class="py-4 px-4 text-center">
-                                <button onclick="printLabel('${btoa(unescape(encodeURIComponent(namaLengkap)))}', '${btoa(unescape(encodeURIComponent(cleanAlamat)))}', '${btoa(unescape(encodeURIComponent(cleanProduk)))}')" 
-                                        class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow-sm">
-                                    🖨️ Cetak
-                                </button>
+                                <button onclick="printLabel('${btoa(nama + ' (' + hp + ')')}','${btoa(alamat)}','${btoa(produkBersih)}')" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-xs font-bold">🖨️ Cetak</button>
                             </td>
                         </tr>
                     `;
                 }).join('');
-            } catch (error) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>';
-            }
-        }
-
-        function parseCSVAdvanced(text) {
-            let r = [], row = ['']; let q = false;
-            for (let i = 0; i < text.length; i++) {
-                let c = text[i], next = text[i+1];
-                if (c === '"') { if (q && next === '"') { row[row.length - 1] += '"'; i++; } else { q = !q; } }
-                else if (c === ',' && !q) { row.push(''); }
-                else if ((c === '\r' || c === '\n') && !q) { if (c === '\r' && next === '\n') i++; r.push(row); row = ['']; }
-                else { row[row.length - 1] += c; }
-            }
-            if (row.length > 1 || row[0] !== '') r.push(row);
-            const headers = r[0].map(h => h.trim().replace(/["']/g, ""));
-            return r.slice(1).filter(r => r.length === headers.length).map(r => {
-                let obj = {}; headers.forEach((h, i) => obj[h] = r[i]); return obj;
-            });
+            } catch(e) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-red-500">Gagal memuat data.</td></tr>'; }
         }
 
         function printLabel(b64Nama, b64Alamat, b64Produk) {
-            const nama = decodeURIComponent(escape(atob(b64Nama)));
-            const alamat = decodeURIComponent(escape(atob(b64Alamat)));
-            
-            // PEMBERSIH TOTAL: Membuang kata kunci transaksi dan nominal harga
-            let rawProduk = decodeURIComponent(escape(atob(b64Produk)));
-            const produk = rawProduk
-                .replace(/(subtotal|total|estimasi|harga|ongkir|biaya)\s*:?\s*[\d\.,\s]*/gi, '') // Hapus kata kunci & nominal
-                .replace(/(Rp\.?\s?\d+[\d\.,]*|[\d\.,]+\s?(rb|k|juta))/gi, '') // Hapus sisa nominal harga
-                .replace(/[\(\[\{].*?[\)\]\}]/g, '') // Hapus konten dalam kurung
-                .replace(/[=-]{2,}/g, '') // Hapus garis-garis pemisah
-                .replace(/\s+/g, ' ') // Rapikan spasi ganda
-                .trim();
-
-            document.getElementById('lbl-penerima').innerText = nama;
-            document.getElementById('lbl-alamat').innerText = alamat;
-            document.getElementById('lbl-produk').innerText = produk;
-
-            const printArea = document.getElementById('print-area');
-            printArea.classList.remove('hidden');
-            setTimeout(() => { window.print(); printArea.classList.add('hidden'); }, 250);
+            document.getElementById('lbl-penerima').innerText = atob(b64Nama);
+            document.getElementById('lbl-alamat').innerText = atob(b64Alamat);
+            document.getElementById('lbl-produk').innerText = atob(b64Produk);
+            document.getElementById('print-area').classList.remove('hidden');
+            setTimeout(() => { window.print(); document.getElementById('print-area').classList.add('hidden'); }, 250);
         }
         window.onload = fetchOrders;
     </script>
