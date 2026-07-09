@@ -309,6 +309,17 @@
                 if (!response.ok) throw new Error("Gagal mengunduh data.");
                 const data = await response.text();
                 allProducts = parseCSV(data);
+
+                // Sinkronisasi otomatis Status berdasarkan nilai kolom Stock
+                allProducts.forEach(p => {
+                    const keys = Object.keys(p);
+                    const stockKey = keys.find(k => k.toLowerCase() === 'stock');
+                    if (stockKey && p[stockKey] !== undefined && p[stockKey].trim() !== "") {
+                        const stockNum = parseInt(p[stockKey].replace(/[^0-9]/g, '')) || 0;
+                        p.Status = stockNum > 0 ? 'Ready' : 'Kosong';
+                    }
+                });
+
                 applyFilterAndSearch();
                 handleUrlParams();
             } catch (error) {
@@ -904,7 +915,7 @@ Saya akan segera melakukan transfer ke rekening BCA toko, mohon dikonfirmasi ya 
             // 3. LANGSUNG BUKA WHATSAPP (INSTANT/TANPA MENUNGGU GOOGLE SHEETS)
             window.open(finalWaUrl, '_blank');
 
-            // 4. KIRIM KE GOOGLE SHEETS DI LATAR BELAKANG (TIDAK MEMBLOKIR ALUR)
+            // 4. KIRIM KE GOOGLE SHEETS DI LATAR BELAKANG (DENGAN DATA ITEMS UNTUK PENGURANGAN STOK)
             fetch(googleSheetsWebAppUrl, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -913,7 +924,8 @@ Saya akan segera melakukan transfer ke rekening BCA toko, mohon dikonfirmasi ya 
                     nama: namaPembeli,
                     hp: hpPembeli,
                     alamat: `${alamatPembeli}, ${namaKota}, ${namaProvinsi} (${teksKurirTerpilih} - Rp ${ongkirTerpilih.toLocaleString('id-ID')})`,
-                    belanjaan: globalTextDaftarBelanja + `\nTotal Akhir + Ongkir: ${formattedTotalAkhir}`
+                    belanjaan: globalTextDaftarBelanja + `\nTotal Akhir + Ongkir: ${formattedTotalAkhir}`,
+                    items: cart.map(item => ({ nama: item.Nama, qty: item.qty }))
                 })
             }).catch(error => console.error("Gagal mengirim ke Google Sheets di background:", error));
 
