@@ -876,10 +876,20 @@
             const selectKota = document.getElementById('form-kota');
             const namaKota = selectKota.options[selectKota.selectedIndex].text;
 
-            // 1. SIMPAN DATA MEMBER DI LOKAL BROWSER PEMBELI
+            // === 1. PERBAIKAN SINKRONISASI ALAMAT AGAR TIDAK MEMANJANG ===
+            // Kita cek dulu, kalau di dalam input alamat sudah ada tulisan kota/provinsi (dari auto-fill member), jangan ditambah lagi.
+            let alamatLengkap = alamatPembeli;
+            if (!alamatLengkap.includes(namaKota)) {
+                alamatLengkap += `, ${namaKota}`;
+            }
+            if (!alamatLengkap.includes(namaProvinsi)) {
+                alamatLengkap += `, ${namaProvinsi}`;
+            }
+
+            // SIMPAN DATA MEMBER DI LOKAL BROWSER PEMBELI
             localStorage.setItem('member_nama', namaPembeli);
             localStorage.setItem('member_hp', hpPembeli);
-            localStorage.setItem('member_alamat', `${alamatPembeli}, ${namaKota}, ${namaProvinsi}`);
+            localStorage.setItem('member_alamat', alamatLengkap); // Menyimpan alamat yang rapi
 
             // Perbarui sapaan header secara langsung
             const welcomeElement = document.getElementById('welcome-member');
@@ -887,53 +897,63 @@
                 welcomeElement.innerHTML = `👋 Halo, <span class="font-bold text-emerald-600 dark:text-emerald-400">${namaPembeli}</span> (Member Toko)`;
             }
 
-            // Hitung total akhir gabungan belanja + ongkir
-            const totalHargaBarang = cart.reduce((sum, item) => sum + (item.Harga * item.qty), 0);
-            const totalAkhirSemua = totalHargaBarang + ongkirTerpilih;
-            const formattedTotalAkhir = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalAkhirSemua).replace(/\s?/g, '');
+            // === 2. SIAPKAN DATA UNTUK WHATSAPP & GOOGLE SHEETS ===
+            const formattedTotalAkhir = "Rp " + (totalHarga + ongkirTerpilih).toLocaleString('id-ID');
 
-            // 2. SIAPKAN TEMPLATE PESAN WHATSAPP DENGAN ONGKIR SPECIFIC
-            const templatePesanWA = `Halo Admin Figurorama, saya ingin memesan item berikut:
+            // Susun teks pesan WhatsApp
+            const waMessage = 
+`*PESANAN BARU VIA WEB*
+----------------------------------
+*Data Pembeli:*
+Nama: ${namaPembeli}
+No HP: ${hpPembeli}
+Alamat: ${alamatLengkap}
+Kurir: ${teksKurirTerpilih} - Rp ${ongkirTerpilih.toLocaleString('id-ID')}
 
+*Daftar Belanja:*
 ${globalTextDaftarBelanja}
-📦 Ongkos Kirim: Rp ${ongkirTerpilih.toLocaleString('id-ID')} (${teksKurirTerpilih})
-💰 TOTAL KESELURUHAN: ${formattedTotalAkhir}
+----------------------------------
+*Total Akhir:* *${formattedTotalAkhir}*`;
 
----------------------------------------
-👤 DATA LENGKAP PENGIRIMAN:
-• Nama: ${namaPembeli}
-• No. HP: ${hpPembeli}
-• Alamat: ${alamatPembeli}
-• Kota/Kab: ${namaKota}
-• Provinsi: ${namaProvinsi}
----------------------------------------
+            const finalWaUrl = `https://wa.me/6281322555224?text=${encodeURIComponent(waMessage)}`; // Ganti dengan nomor WA Anda
 
-Saya akan segera melakukan transfer ke rekening BCA toko, mohon dikonfirmasi ya Admin, terima kasih!`;
-
-            const finalWaUrl = `https://wa.me/6281322555224?text=${encodeURIComponent(templatePesanWA)}`;
-            
-            // 3. LANGSUNG BUKA WHATSAPP (INSTANT/TANPA MENUNGGU GOOGLE SHEETS)
+            // === 3. LANGSUNG BUKA WHATSAPP ===
             window.open(finalWaUrl, '_blank');
 
-            // 4. KIRIM KE GOOGLE SHEETS DI LATAR BELAKANG (DENGAN MENAMBAHKAN PARAMETER ITEMS)
+            // === 4. KIRIM KE GOOGLE SHEETS DI LATAR BELAKANG ===
+            // Pastikan URL di bawah ini diisi dengan URL Web App Google Apps Script Anda yang baru
+            const googleSheetsWebAppUrl = "URL_WEB_APP_GOOGLE_SCRIPT_ANDA_DISINI"; 
+
             fetch(googleSheetsWebAppUrl, {
                 method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'text/plain;charset=utf-8' 
+                },
                 body: JSON.stringify({
                     nama: namaPembeli,
                     hp: hpPembeli,
-                    alamat: `${alamatPembeli}, ${namaKota}, ${namaProvinsi} (${teksKurirTerpilih} - Rp ${ongkirTerpilih.toLocaleString('id-ID')})`,
+                    // Menggunakan alamatLengkap + kurir agar tercatat rapi dan otomatis kurangi stok
+                    alamat: `${alamatLengkap} (${teksKurirTerpilih} - Rp ${ongkirTerpilih.toLocaleString('id-ID')})`,
                     belanjaan: globalTextDaftarBelanja + `\nTotal Akhir + Ongkir: ${formattedTotalAkhir}`,
-                    items: cart.map(item => ({ nama: item.Nama, qty: item.qty })) // <--- PERBAIKAN: Data ini wajib dikirim agar backend tahu barang apa yang harus dikurangi stoknya!
+                    items: cart.map(item => ({ nama: item.Nama, qty: item.qty }))
                 })
-            }).catch(error => console.error("Gagal mengirim ke Google Sheets di background:", error));
+            })
+            .then(res => res.json())
+            .then(resData => {
+                console.log("Respon Server Sheets:", resData);
+            })
+            .catch(error => console.error("Gagal mengirim ke Google Sheets:", error));
 
-            // 5. BERSIHKAN KERANJANG DAN MODAL SECARA INSTAN
+            // === 5. BERSIHKAN KERANJANG DAN FORM SETELAH BERHASIL ===
             cart = [];
             globalTextDaftarBelanja = "";
             ongkirTerpilih = 0;
             teksKurirTerpilih = "";
+            
+            // Reset elemen dropdown dan teks input di halaman agar kembali kosong
+            const orderForm = document.getElementById('order-form') || document.querySelector('form');
+            if (orderForm) orderForm.reset(); 
+            
             updateCartUI();
             closeFormModal();
         }
