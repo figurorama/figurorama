@@ -865,43 +865,43 @@
        // --- PROSES SUBMIT FORM DAN INTEGRASI AKHIR ---
         async function handleFormSubmit(event) {
             event.preventDefault();
+            try {
+                const namaPembeli = document.getElementById('form-nama').value.trim();
+                const hpPembeli = document.getElementById('form-hp').value.trim();
+                const alamatPembeli = document.getElementById('form-alamat').value.trim();
+                
+                const selectProv = document.getElementById('form-provinsi');
+                const namaProvinsi = selectProv ? selectProv.options[selectProv.selectedIndex].text : '';
+                
+                const selectKota = document.getElementById('form-kota');
+                const namaKota = selectKota ? selectKota.options[selectKota.selectedIndex].text : '';
 
-            const namaPembeli = document.getElementById('form-nama').value.trim();
-            const hpPembeli = document.getElementById('form-hp').value.trim();
-            const alamatPembeli = document.getElementById('form-alamat').value.trim();
-            
-            const selectProv = document.getElementById('form-provinsi');
-            const namaProvinsi = selectProv.options[selectProv.selectedIndex].text;
-            
-            const selectKota = document.getElementById('form-kota');
-            const namaKota = selectKota.options[selectKota.selectedIndex].text;
+                // === 1. LOGIKA PENYARINGAN ALAMAT AGAR TIDAK MEMANJANG ===
+                let alamatLengkap = alamatPembeli;
+                if (namaKota && !alamatLengkap.includes(namaKota)) {
+                    alamatLengkap += `, ${namaKota}`;
+                }
+                if (namaProvinsi && !alamatLengkap.includes(namaProvinsi)) {
+                    alamatLengkap += `, ${namaProvinsi}`;
+                }
 
-            // === 1. PERBAIKAN SINKRONISASI ALAMAT AGAR TIDAK MEMANJANG ===
-            // Kita cek dulu, kalau di dalam input alamat sudah ada tulisan kota/provinsi (dari auto-fill member), jangan ditambah lagi.
-            let alamatLengkap = alamatPembeli;
-            if (!alamatLengkap.includes(namaKota)) {
-                alamatLengkap += `, ${namaKota}`;
-            }
-            if (!alamatLengkap.includes(namaProvinsi)) {
-                alamatLengkap += `, ${namaProvinsi}`;
-            }
+                // SIMPAN DATA MEMBER DI LOKAL BROWSER PEMBELI
+                localStorage.setItem('member_nama', namaPembeli);
+                localStorage.setItem('member_hp', hpPembeli);
+                localStorage.setItem('member_alamat', alamatLengkap);
 
-            // SIMPAN DATA MEMBER DI LOKAL BROWSER PEMBELI
-            localStorage.setItem('member_nama', namaPembeli);
-            localStorage.setItem('member_hp', hpPembeli);
-            localStorage.setItem('member_alamat', alamatLengkap); // Menyimpan alamat yang rapi
+                // Perbarui sapaan header secara langsung
+                const welcomeElement = document.getElementById('welcome-member');
+                if (welcomeElement) {
+                    welcomeElement.innerHTML = `👋 Halo, <span class="font-bold text-emerald-600 dark:text-emerald-400">${namaPembeli}</span> (Member Toko)`;
+                }
 
-            // Perbarui sapaan header secara langsung
-            const welcomeElement = document.getElementById('welcome-member');
-            if (welcomeElement) {
-                welcomeElement.innerHTML = `👋 Halo, <span class="font-bold text-emerald-600 dark:text-emerald-400">${namaPembeli}</span> (Member Toko)`;
-            }
+                // === 2. FORMAT UNTUK DATA WHATSAPP ===
+                // Menggunakan totalHarga (huruf t kecil) sesuai variabel global di file Anda
+                const nilaiTotal = typeof totalHarga !== 'undefined' ? totalHarga : 0;
+                const formattedTotalAkhir = "Rp " + (nilaiTotal + ongkirTerpilih).toLocaleString('id-ID');
 
-            // === 2. SIAPKAN DATA UNTUK WHATSAPP & GOOGLE SHEETS ===
-            const formattedTotalAkhir = "Rp " + (totalHarga + ongkirTerpilih).toLocaleString('id-ID');
-
-            // Susun teks pesan WhatsApp
-            const waMessage = 
+                const waMessage = 
 `*PESANAN BARU VIA WEB*
 ----------------------------------
 *Data Pembeli:*
@@ -915,47 +915,51 @@ ${globalTextDaftarBelanja}
 ----------------------------------
 *Total Akhir:* *${formattedTotalAkhir}*`;
 
-            const finalWaUrl = `https://wa.me/6281322555224?text=${encodeURIComponent(waMessage)}`; // Ganti dengan nomor WA Anda
+                const finalWaUrl = `https://wa.me/6281315535311?text=${encodeURIComponent(waMessage)}`;
 
-            // === 3. LANGSUNG BUKA WHATSAPP ===
-            window.open(finalWaUrl, '_blank');
+                // === 3. BUKA WHATSAPP ===
+                window.open(finalWaUrl, '_blank');
 
-            // === 4. KIRIM KE GOOGLE SHEETS DI LATAR BELAKANG ===
-            // Pastikan URL di bawah ini diisi dengan URL Web App Google Apps Script Anda yang baru
-            const googleSheetsWebAppUrl = "URL_WEB_APP_GOOGLE_SCRIPT_ANDA_DISINI"; 
+                // === 4. KIRIM KE GOOGLE SHEETS DI LATAR BELAKANG ===
+                if (typeof googleSheetsWebAppUrl !== 'undefined' && googleSheetsWebAppUrl) {
+                    fetch(googleSheetsWebAppUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            nama: namaPembeli,
+                            hp: hpPembeli,
+                            alamat: `${alamatLengkap} (${teksKurirTerpilih} - Rp ${ongkirTerpilih.toLocaleString('id-ID')})`,
+                            belanjaan: globalTextDaftarBelanja + `\nTotal Akhir + Ongkir: ${formattedTotalAkhir}`,
+                            items: cart.map(item => ({
+                                nama: item.Nama || item.nama,
+                                qty: item.qty
+                            }))
+                        })
+                    }).catch(error => console.error("Gagal mengirim ke Google Sheets:", error));
+                }
 
-            fetch(googleSheetsWebAppUrl, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'text/plain;charset=utf-8' 
-                },
-                body: JSON.stringify({
-                    nama: namaPembeli,
-                    hp: hpPembeli,
-                    // Menggunakan alamatLengkap + kurir agar tercatat rapi dan otomatis kurangi stok
-                    alamat: `${alamatLengkap} (${teksKurirTerpilih} - Rp ${ongkirTerpilih.toLocaleString('id-ID')})`,
-                    belanjaan: globalTextDaftarBelanja + `\nTotal Akhir + Ongkir: ${formattedTotalAkhir}`,
-                    items: cart.map(item => ({ nama: item.Nama, qty: item.qty }))
-                })
-            })
-            .then(res => res.json())
-            .then(resData => {
-                console.log("Respon Server Sheets:", resData);
-            })
-            .catch(error => console.error("Gagal mengirim ke Google Sheets:", error));
+                // === 5. BERSIHKAN KERANJANG DAN MODAL ===
+                cart = [];
+                globalTextDaftarBelanja = "";
+                ongkirTerpilih = 0;
+                teksKurirTerpilih = "";
+                
+                const orderForm = document.getElementById('order-form') || document.querySelector('form');
+                if (orderForm) orderForm.reset();
 
-            // === 5. BERSIHKAN KERANJANG DAN FORM SETELAH BERHASIL ===
-            cart = [];
-            globalTextDaftarBelanja = "";
-            ongkirTerpilih = 0;
-            teksKurirTerpilih = "";
-            
-            // Reset elemen dropdown dan teks input di halaman agar kembali kosong
-            const orderForm = document.getElementById('order-form') || document.querySelector('form');
-            if (orderForm) orderForm.reset(); 
-            
-            updateCartUI();
-            closeFormModal();
+                updateCartUI();
+                closeFormModal();
+                
+                // Refresh data member setelah form di-reset
+                if (typeof checkReturnMember === 'function') {
+                    checkReturnMember();
+                }
+
+            } catch (err) {
+                // Jika ada coding yang salah ketik/tidak terbaca, akan muncul alert ini agar tahu rusaknya di mana
+                alert("Ada kesalahan sistem: " + err.message);
+                console.error(err);
+            }
         }
 
         function toggleDarkMode() {
