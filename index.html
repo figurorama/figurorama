@@ -36,10 +36,12 @@
             width: max-content;
             animation: scroll-infinite 30s linear infinite; /* 30s mengatur kecepatan jalan perlahan */
         }
-        /* Efek pause/berhenti jalan ketika kursor mouse diarahkan ke produk */
-        .featured-track:hover {
-            animation-play-state: paused;
+        
+        /* Kelas bantuan untuk menjeda animasi via JavaScript */
+        .animation-paused {
+            animation-play-state: paused !important;
         }
+
         @keyframes scroll-infinite {
             0% {
                 transform: translateX(0);
@@ -424,7 +426,7 @@
 
             container.classList.remove('hidden');
 
-            // --- TRICK INFINITE LOOP: Map HTML utama ---
+            // --- Map HTML utama ---
             const itemsHtml = featuredItems.map((p) => {
                 const namaProduk = p.Nama || "Collectible Item";
                 const namaAman = namaProduk.replace(/['"]/g, '\\$&');
@@ -480,6 +482,21 @@
 
             // Trik Infinite Loop: Menggabungkan HTML utama + HTML Kloningan di dalam track yang sama
             grid.innerHTML = itemsHtml + itemsHtml;
+
+            // --- PERBAIKAN UTAMA: Manajemen Event Jeda & Jalan Aman via JavaScript ---
+            // Fungsi untuk menghentikan animasi
+            const pauseAnim = () => grid.classList.add('animation-paused');
+            // Fungsi untuk menjalankan kembali animasi
+            const playAnim = () => grid.classList.remove('animation-paused');
+
+            // Kontrol untuk komputer desktop (Mouse)
+            grid.addEventListener('mouseenter', pauseAnim);
+            grid.addEventListener('mouseleave', playAnim);
+
+            // Kontrol untuk handphone/tablet layar sentuh (Touch Event)
+            grid.addEventListener('touchstart', pauseAnim, { passive: true });
+            grid.addEventListener('touchend', playAnim, { passive: true });
+            grid.addEventListener('touchcancel', playAnim, { passive: true });
         }
 
         function applyFilterAndSearch() {
@@ -510,15 +527,6 @@
 
         function filterCategory(cat) {
             currentCategory = cat.toLowerCase();
-            const buttons = document.querySelectorAll('#category-filters button');
-            buttons.forEach(btn => {
-                const targetCat = btn.getAttribute('data-cat');
-                if(targetCat === currentCategory) {
-                    btn.className = currentCategory === 'habis' ? "px-4 py-2 rounded-full text-sm font-medium bg-red-600 border border-red-500 text-white shadow-sm" : "px-4 py-2 rounded-full text-sm font-medium bg-emerald-600 border border-emerald-500 text-white shadow-sm";
-                } else {
-                    btn.className = btn.getAttribute('data-cat') === 'habis' ? "px-4 py-2 rounded-full text-sm font-medium bg-white/90 dark:bg-gray-800/90 shadow-sm border text-red-600 dark:text-red-400 border-red-200 dark:border-red-900" : "px-4 py-2 rounded-full text-sm font-medium bg-white/90 dark:bg-gray-800/90 shadow-sm border text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-600 hover:bg-emerald-50 dark:hover:bg-gray-600";
-                }
-            });
             currentPage = 1;
             applyFilterAndSearch();
         }
@@ -611,7 +619,7 @@
         function changePage(pageNumber) {
             currentPage = pageNumber;
             renderProducts();
-            document.getElementById('category-filters').scrollIntoView({ behavior: 'smooth' });
+            window.scrollTo({ top: 400, behavior: 'smooth' });
         }
 
         function openModalByName(namaProduk, isFromPopstate = false) {
@@ -666,7 +674,6 @@
                 lblHargaUtama.innerText = formattedNormal;
             }
 
-            // --- TAMPILAN BERAT PRODUK (KONVERSI GRAM KE KG) ---
             const lblBerat = document.getElementById('modal-berat');
             let beratGram = p[beratKey] ? parseFloat(p[beratKey].replace(/[^0-9.]/g, '')) : 0;
             if (beratGram > 0) {
@@ -777,7 +784,6 @@
             }
         }
 
-        // --- SISTEM DETEKSI MEMBER LAMA & AUTOFILL FORM ---
         function checkReturnMember() {
             const savedNama = localStorage.getItem('member_nama');
             const savedHp = localStorage.getItem('member_hp');
@@ -791,27 +797,23 @@
                     welcomeElement.innerHTML = `👋 Halo, <span class="font-bold text-emerald-600 dark:text-emerald-400">${savedNama}</span> (Member Toko)`;
                 }
                 
-                // Isi otomatis kolom input form
                 if(document.getElementById('form-nama')) document.getElementById('form-nama').value = savedNama;
                 if(document.getElementById('form-hp')) document.getElementById('form-hp').value = savedHp;
-                if(document.getElementById('form-alamat')) document.getElementById('form-alamat').value = savedAlamat; // Cuma ngisi nama jalan murni
+                if(document.getElementById('form-alamat')) document.getElementById('form-alamat').value = savedAlamat;
 
-                // Otomatis pilih dropdown Provinsi jika ada datanya
                 if (savedProv) {
                     const selectProv = document.getElementById('form-provinsi');
                     if (selectProv) {
                         selectProv.value = savedProv;
-                        // Trigger event 'change' biar dropdown Kota otomatis nge-load datanya RajaOngkir
                         selectProv.dispatchEvent(new Event('change'));
                         
-                        // Kasih jeda waktu sedikit nunggu data kota selesai di-load API, baru set data kotanya
                         setTimeout(() => {
                             const selectKota = document.getElementById('form-kota');
                             if (selectKota && savedKota) {
                                 selectKota.value = savedKota;
                                 selectKota.dispatchEvent(new Event('change'));
                             }
-                        }, 800); // Jeda 0.8 detik
+                        }, 800);
                     }
                 }
             }
@@ -820,7 +822,7 @@
         function openFormModal() {
             document.getElementById('form-modal').classList.remove('hidden');
             checkReturnMember();
-            loadProvinsi(); // Pemicu otomatis load wilayah RajaOngkir
+            loadProvinsi();
         }
 
         function closeFormModal(isFromPopstate = false) {
@@ -832,7 +834,6 @@
             }
         }
 
-        // --- MANAJEMEN KERANJANG BELANJA ---
         function toggleCartDrawer(isFromPopstate = false) {
             const drawer = document.getElementById('cart-drawer');
             const isClosing = !drawer.classList.contains('translate-x-full');
@@ -865,11 +866,10 @@
                 let hargaMentah = currentModalProduct[hargaDiskonKey] ? parseInt(currentModalProduct[hargaDiskonKey].replace(/[^0-9]/g, '')) : 0;
                 
                 if (!hargaMentah && currentModalProduct[hargaKey]) {
-                    hargaMentah = parseInt(currentModalProduct[hargaKey].replace(/[^0-9]/g, ''));
+                    hargaMentah = parseInt(currentModalProduct[hargaKey].replace(/[^0-9]/g,'));
                 }
 
                 let beratMentah = currentModalProduct[beratKey] ? parseFloat(currentModalProduct[beratKey].replace(/[^0-9.]/g, '')) : 0;
-                // Jika data berat di sheet kosong/0, berikan fallback aman default 500 gram
                 if (isNaN(beratMentah) || beratMentah <= 0) beratMentah = 500;
 
                 cart.push({
@@ -951,7 +951,6 @@
             openFormModal();
         }
 
-        // --- SISTEM FUNGSI KOMUNIKASI RAJAONGKIR VIA PROXY GOOGLE APPS SCRIPT ---
         async function loadProvinsi() {
             const provSelect = document.getElementById('form-provinsi');
             provSelect.innerHTML = '<option value="">Memuat provinsi...</option>';
@@ -989,8 +988,6 @@
             if(!kotaTujuan) return;
 
             layananSelect.innerHTML = '<option value="">Menghitung biaya ongkir...</option>';
-            
-            // Menggunakan data kolom berat riil dari item yang berada di dalam keranjang belanja
             const totalBerat = cart.reduce((sum, item) => sum + (item.qty * item.Berat), 0);
 
             try {
@@ -1016,73 +1013,47 @@
         function updateTotalDenganOngkir() {
             const selectLayanan = document.getElementById('form-layanan-ongkir');
             ongkirTerpilih = parseInt(selectLayanan.value) || 0;
-            
             const selectedOption = selectLayanan.options[selectLayanan.selectedIndex];
             teksKurirTerpilih = selectedOption.getAttribute('data-kurir') || "";
         }
 
-       // --- PROSES SUBMIT FORM DAN INTEGRASI AKHIR ---
         async function handleFormSubmit(event) {
             event.preventDefault();
 
             const namaPembeli = document.getElementById('form-nama').value.trim();
             const hpPembeli = document.getElementById('form-hp').value.trim();
-            const alamatPembeli = document.getElementById('form-alamat').value.trim(); // Ini cuma nama jalan murni
+            const alamatPembeli = document.getElementById('form-alamat').value.trim();
             
             const selectProv = document.getElementById('form-provinsi');
             const namaProvinsi = selectProv.options[selectProv.selectedIndex].text;
-            const idProvinsi = selectProv.value; // Ambil ID provinsi untuk auto-select nanti
+            const idProvinsi = selectProv.value;
             
             const selectKota = document.getElementById('form-kota');
             const namaKota = selectKota.options[selectKota.selectedIndex].text;
-            const idKota = selectKota.value; // Ambil ID kota untuk auto-select nanti
+            const idKota = selectKota.value;
 
-            // === 1. SIMPAN KE LOCALSTORAGE SECARA TERPISAH (Ide ChatGPT) ===
             localStorage.setItem('member_nama', namaPembeli);
             localStorage.setItem('member_hp', hpPembeli);
-            localStorage.setItem('member_alamat', alamatPembeli); // Cuma simpan nama jalan
-            localStorage.setItem('member_provinsi', idProvinsi); // Simpan ID Provinsi
-            localStorage.setItem('member_kota', idKota);         // Simpan ID Kota
+            localStorage.setItem('member_alamat', alamatPembeli);
+            localStorage.setItem('member_provinsi', idProvinsi);
+            localStorage.setItem('member_kota', idKota);
 
-            // Perbarui sapaan header secara langsung
             const welcomeElement = document.getElementById('welcome-member');
             if (welcomeElement) {
                 welcomeElement.innerHTML = `👋 Halo, <span class="font-bold text-emerald-600 dark:text-emerald-400">${namaPembeli}</span> (Member Toko)`;
             }
 
-            // Hitung total akhir gabungan belanja + ongkir menggunakan variabel asli lu
             const totalHargaBarang = cart.reduce((sum, item) => sum + (item.Harga * item.qty), 0);
             const totalAkhirSemua = totalHargaBarang + ongkirTerpilih;
             const formattedTotalAkhir = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalAkhirSemua).replace(/\s?/g, '');
 
-            // Gabungkan alamat murni, kota, dan provinsi untuk teks WA & Sheets
             const alamatKirimLengkap = `${alamatPembeli}, ${namaKota}, ${namaProvinsi}`;
 
-            // 2. TEMPLATE PESAN WA ASLI LU
-            const templatePesanWA = `Halo Admin Figurorama, saya ingin memesan item berikut:
+            const templatePesanWA = `Halo Admin Figurorama, saya ingin memesan item berikut:\n\n${globalTextDaftarBelanja}\n📦 Ongkos Kirim: Rp ${ongkirTerpilih.toLocaleString('id-ID')} (${teksKurirTerpilih})\n💰 TOTAL KESELURUHAN: ${formattedTotalAkhir}\n\n---------------------------------------\n👤 DATA LENGKAP PENGIRIMAN:\n• Nama: ${namaPembeli}\n• No. HP: ${hpPembeli}\n• Alamat: ${alamatPembeli}\n• Kota/Kab: ${namaKota}\n• Provinsi: ${namaProvinsi}\n---------------------------------------\n\nSaya akan segera melakukan transfer to rekening BCA toko, mohon dikonfirmasi ya Admin, terima kasih!`;
 
-${globalTextDaftarBelanja}
-📦 Ongkos Kirim: Rp ${ongkirTerpilih.toLocaleString('id-ID')} (${teksKurirTerpilih})
-💰 TOTAL KESELURUHAN: ${formattedTotalAkhir}
-
----------------------------------------
-👤 DATA LENGKAP PENGIRIMAN:
-• Nama: ${namaPembeli}
-• No. HP: ${hpPembeli}
-• Alamat: ${alamatPembeli}
-• Kota/Kab: ${namaKota}
-• Provinsi: ${namaProvinsi}
----------------------------------------
-
-Saya akan segera melakukan transfer to rekening BCA toko, mohon dikonfirmasi ya Admin, terima kasih!`;
-
-            // MEMPERTAHANKAN NOMOR WA ASLI LU: 6281322555224
             const finalWaUrl = `https://wa.me/6281322555224?text=${encodeURIComponent(templatePesanWA)}`;
-            
-            // 3. LANGSUNG BUKA WHATSAPP
             window.open(finalWaUrl, '_blank');
 
-            // 4. KIRIM DATA KE GOOGLE SHEETS DI LATAR BELAKANG
             fetch(googleSheetsWebAppUrl, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -1096,7 +1067,6 @@ Saya akan segera melakukan transfer to rekening BCA toko, mohon dikonfirmasi ya 
                 })
             }).catch(error => console.error("Gagal mengirim ke Google Sheets di background:", error));
 
-            // 5. BERSIHKAN KERANJANG DAN MODAL SECARA INSTAN
             cart = [];
             globalTextDaftarBelanja = "";
             ongkirTerpilih = 0;
@@ -1109,11 +1079,8 @@ Saya akan segera melakukan transfer to rekening BCA toko, mohon dikonfirmasi ya 
             closeFormModal();
         }
 
-        // Fungsi penjembatan dari dropdown select ke sistem filter asli
         function handleCategoryDropdownChange(selectElement) {
             const selectedCategory = selectElement.value;
-            
-            // Tetap memanggil fungsi filter bawaan tokomu tanpa merusak logika aslinya
             if (typeof filterCategory === 'function') {
                 filterCategory(selectedCategory);
             }
