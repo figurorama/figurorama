@@ -98,8 +98,9 @@
                         <p id="modal-harga" class="text-gray-700 dark:text-emerald-400 font-black text-2xl text-emerald-700 leading-tight">Harga</p>
                     </div>
 
-                    <div class="mt-3">
+                    <div class="mt-3 flex flex-wrap gap-2 items-center">
                         <span id="modal-status" class="inline-block text-xs font-semibold px-2 py-1 rounded shadow-sm bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200">Ready</span>
+                        <span id="modal-berat" class="inline-block text-xs font-semibold px-2 py-1 rounded shadow-sm bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-200 hidden">⚖️ 0 kg</span>
                     </div>
 
                     <div class="mt-4 border-t pt-4 dark:border-gray-700">
@@ -483,6 +484,7 @@
             const diskonKey = keys.find(k => k.toLowerCase() === 'diskon') || 'Diskon';
             const hargaDiskonKey = keys.find(k => k.toLowerCase() === 'harga_diskon') || 'Harga_Diskon';
             const deskripsiKey = keys.find(k => k.toLowerCase() === 'deskripsi') || 'Deskripsi';
+            const beratKey = keys.find(k => k.toLowerCase() === 'berat') || 'Berat';
 
             const fotoArray = [p.Foto, p.Foto2, p.Foto3, p.Foto4, p.Foto5].filter(url => url && url.trim() !== "");
             
@@ -515,6 +517,17 @@
                     formattedNormal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(hargaNormalMentah).replace(/\s?/g, '');
                 }
                 lblHargaUtama.innerText = formattedNormal;
+            }
+
+            // --- TAMPILAN BERAT PRODUK (KONVERSI GRAM KE KG) ---
+            const lblBerat = document.getElementById('modal-berat');
+            let beratGram = p[beratKey] ? parseFloat(p[beratKey].replace(/[^0-9.]/g, '')) : 0;
+            if (beratGram > 0) {
+                let beratKg = beratGram / 1000;
+                lblBerat.innerText = `⚖️ ${beratKg.toFixed(2).replace(/\.00$/, '')} kg`;
+                lblBerat.classList.remove('hidden');
+            } else {
+                lblBerat.classList.add('hidden');
             }
 
             const isKosong = p.Status && p.Status.trim().toLowerCase() === 'kosong';
@@ -649,6 +662,7 @@
             }
         }
 
+        // --- MANAJEMEN KERANJANG BELANJA ---
         function toggleCartDrawer(isFromPopstate = false) {
             const drawer = document.getElementById('cart-drawer');
             const isClosing = !drawer.classList.contains('translate-x-full');
@@ -676,6 +690,7 @@
                 const keys = Object.keys(currentModalProduct);
                 const hargaKey = keys.find(k => k.toLowerCase() === 'harga') || 'Harga';
                 const hargaDiskonKey = keys.find(k => k.toLowerCase() === 'harga_diskon') || 'Harga_Diskon';
+                const beratKey = keys.find(k => k.toLowerCase() === 'berat') || 'Berat';
                 
                 let hargaMentah = currentModalProduct[hargaDiskonKey] ? parseInt(currentModalProduct[hargaDiskonKey].replace(/[^0-9]/g, '')) : 0;
                 
@@ -683,10 +698,15 @@
                     hargaMentah = parseInt(currentModalProduct[hargaKey].replace(/[^0-9]/g, ''));
                 }
 
+                let beratMentah = currentModalProduct[beratKey] ? parseFloat(currentModalProduct[beratKey].replace(/[^0-9.]/g, '')) : 0;
+                // Jika data berat di sheet kosong/0, berikan fallback aman default 500 gram
+                if (isNaN(beratMentah) || beratMentah <= 0) beratMentah = 500;
+
                 cart.push({
                     Nama: currentModalProduct.Nama,
                     Harga: hargaMentah,
                     Foto: currentModalProduct.Foto,
+                    Berat: beratMentah,
                     qty: 1
                 });
             }
@@ -800,8 +820,8 @@
 
             layananSelect.innerHTML = '<option value="">Menghitung biaya ongkir...</option>';
             
-            // Hitung estimasi berat total (Contoh: per item di keranjang diasumsikan 500 gram)
-            const totalBerat = cart.reduce((sum, item) => sum + (item.qty * 500), 0);
+            // Menggunakan data kolom berat riil dari item yang berada di dalam keranjang belanja
+            const totalBerat = cart.reduce((sum, item) => sum + (item.qty * item.Berat), 0);
 
             try {
                 const res = await fetch(`${googleSheetsWebAppUrl}?action=getCost&destination=${kotaTujuan}&weight=${totalBerat}`);
