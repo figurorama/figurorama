@@ -24,6 +24,30 @@
             -ms-overflow-style: none;  /* IE and Edge */
             scrollbar-width: none;  /* Firefox */
         }
+
+        /* --- CSS Tambahan untuk Fitur Infinite Autoscroll Perlahan --- */
+        .featured-wrapper {
+            overflow: hidden;
+            width: 100%;
+            position: relative;
+        }
+        .featured-track {
+            display: flex;
+            width: max-content;
+            animation: scroll-infinite 30s linear infinite; /* 30s mengatur kecepatan jalan perlahan */
+        }
+        /* Efek pause/berhenti jalan ketika kursor mouse diarahkan ke produk */
+        .featured-track:hover {
+            animation-play-state: paused;
+        }
+        @keyframes scroll-infinite {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%); /* Geser tepat setengah dari total panjang klon */
+            }
+        }
     </style>
 </head>
 <body class="relative min-h-screen pb-24 dark:bg-gray-900 dark:text-gray-100">
@@ -87,8 +111,10 @@
         <h2 class="text-lg sm:text-xl font-extrabold text-gray-800 dark:text-white mb-4 tracking-wide flex items-center gap-2">
             ⭐ FEATURED PRODUCTS
         </h2>
-        <div id="featured-grid" class="flex overflow-x-auto space-x-4 snap-x snap-mandatory pb-4 no-scrollbar">
-            </div>
+        <div class="featured-wrapper">
+            <div id="featured-grid" class="featured-track space-x-4">
+                </div>
+        </div>
     </div>
 
     <main class="max-w-6xl mx-auto px-4 py-6 sm:py-12">
@@ -197,7 +223,7 @@
                 <hr class="border-gray-100 dark:border-gray-700" />
 
                 <div class="space-y-2">
-                    <p class="font-extrabold text-emerald-700 dark:text-emerald-400 text-base">Q: Setelah melakukan transfer ke rekening BCA, bagaimana saya melakukan konfirmasi?</p>
+                    <p class="font-extrabold text-emerald-700 dark:text-emerald-400 text-base">Q: Setelah melakukan transfer to rekening BCA, bagaimana saya melakukan konfirmasi?</p>
                     <p class="pl-4 border-l-2 border-emerald-500/30 text-gray-600 dark:text-gray-300">
                         Cukup kirimkan foto atau tangkapan layar (<em>screenshot</em>) bukti transfer Anda ke nomor WhatsApp Admin kami. Pesanan Anda akan langsung diproses untuk pengiriman setelah dana masuk. Bukti pengiriman (resi) akan diberikan kepada pembeli.
                     </p>
@@ -397,7 +423,9 @@
             }
 
             container.classList.remove('hidden');
-            grid.innerHTML = featuredItems.map((p) => {
+
+            // --- TRICK INFINITE LOOP: Map HTML utama ---
+            const itemsHtml = featuredItems.map((p) => {
                 const namaProduk = p.Nama || "Collectible Item";
                 const namaAman = namaProduk.replace(/['"]/g, '\\$&');
                 const isKosong = p.Status && p.Status.trim().toLowerCase() === 'kosong';
@@ -422,7 +450,7 @@
                 }
 
                 return `
-                    <div onclick="openModalByName('${namaAman}')" class="w-36 sm:w-48 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition duration-300 flex flex-col justify-between cursor-pointer group flex-shrink-0 snap-start">
+                    <div onclick="openModalByName('${namaAman}')" class="w-36 sm:w-48 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition duration-300 flex flex-col justify-between cursor-pointer group flex-shrink-0">
                         <div>
                             <div class="relative pb-[100%] bg-gray-50 dark:bg-gray-900 overflow-hidden">
                                 <img src="${p.Foto || 'https://via.placeholder.com/300?text=No+Image'}" alt="${namaProduk}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
@@ -449,6 +477,9 @@
                     </div>
                 `;
             }).join('');
+
+            // Trik Infinite Loop: Menggabungkan HTML utama + HTML Kloningan di dalam track yang sama
+            grid.innerHTML = itemsHtml + itemsHtml;
         }
 
         function applyFilterAndSearch() {
