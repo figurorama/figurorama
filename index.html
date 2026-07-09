@@ -1099,11 +1099,19 @@
                 const data = await res.json();
                 
                 layananSelect.innerHTML = '<option value="">Pilih Layanan Pengiriman</option>';
-                if(data.rajaongkir.results && data.rajaongkir.results[0]) {
-                    const kurir = data.rajaongkir.results[0];
-                    kurir.costs.forEach(c => {
-                        const opsiTeks = `JNE - ${c.service} (Rp ${c.cost[0].value.toLocaleString('id-ID')}) Est: ${c.cost[0].etd} hari`;
-                        layananSelect.innerHTML += `<option value="${c.cost[0].value}" data-kurir="JNE ${c.service}">${opsiTeks}</option>`;
+                
+                if (data.rajaongkir.results && data.rajaongkir.results.length > 0) {
+                    // Loop semua kurir yang dikirim dari Apps Script (JNE & J&T)
+                    data.rajaongkir.results.forEach(kurir => {
+                        kurir.costs.forEach(c => {
+                            const namaKurirBesar = kurir.code.toUpperCase();
+                            const opsiTeks = `${namaKurirBesar} - ${c.service} (Rp ${c.cost[0].value.toLocaleString('id-ID')}) Est: ${c.cost[0].etd} hari`;
+                            
+                            layananSelect.innerHTML += `
+                                <option value="${c.cost[0].value}" data-kurir="${namaKurirBesar} ${c.service}">
+                                    ${opsiTeks}
+                                </option>`;
+                        });
                     });
                 } else {
                     layananSelect.innerHTML = '<option value="">Layanan tidak tersedia</option>';
