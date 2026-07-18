@@ -879,7 +879,7 @@
         }
 
         // --- SISTEM DETEKSI MEMBER LAMA & AUTOFILL FORM ---
-function checkReturnMember() {
+async function checkReturnMember() {
             const savedNama = localStorage.getItem('member_nama');
             const savedHp = localStorage.getItem('member_hp');
             const savedAlamat = localStorage.getItem('member_alamat');
@@ -897,25 +897,25 @@ function checkReturnMember() {
                 if(document.getElementById('form-hp')) document.getElementById('form-hp').value = savedHp;
                 if(document.getElementById('form-alamat')) document.getElementById('form-alamat').value = savedAlamat;
 
-                // Otomatis pilih dropdown Provinsi
+                // Otomatis pilih Provinsi
                 if (savedProv) {
                     const selectProv = document.getElementById('form-provinsi');
                     if (selectProv) {
                         selectProv.value = savedProv;
                         
-                        // Picu event change secara manual agar loadKota() bawaanmu langsung jalan
-                        selectProv.dispatchEvent(new Event('change'));
+                        // === BARU & LEBIH AMAN ===
+                        // Langsung panggil loadKota() di sini dan tunggu sampai selesai fetch
+                        const kotaSelesaiDimuat = await loadKota();
                         
-                        // Jeda nunggu API kota selesai, lalu set nilai kotanya
-                        setTimeout(() => {
+                        // Jika kota sudah selesai dirender ke HTML, langsung kunci nilainya
+                        if (kotaSelesaiDimuat && savedKota) {
                             const selectKota = document.getElementById('form-kota');
-                            if (selectKota && savedKota) {
+                            if (selectKota) {
                                 selectKota.value = savedKota;
-                                // Picu event change pada kota agar fungsi hitung ongkir otomatis (jika ada) ter-reset 
-                                // Namun jangan jalankan pilihan opsi kurir/ongkir akhirnya dulu agar user memilih mandiri.
+                                // Picu change pada kota agar form ongkir mendeteksi perubahan (jika ada)
                                 selectKota.dispatchEvent(new Event('change'));
                             }
-                        }, 1000); // Diberi jeda 1 detik agar aman untuk koneksi internet seluler/3G
+                        }
                     }
                 }
             }
@@ -1078,10 +1078,10 @@ async function loadProvinsi() {
             }
         }
 
-        async function loadKota() {
+async function loadKota() {
             const provId = document.getElementById('form-provinsi').value;
             const kotaSelect = document.getElementById('form-kota');
-            if(!provId) return;
+            if(!provId) return false; // Kembalikan false jika provinsi kosong
             
             kotaSelect.innerHTML = '<option value="">Memuat kota...</option>';
             try {
@@ -1089,9 +1089,13 @@ async function loadProvinsi() {
                 const data = await res.json();
                 kotaSelect.innerHTML = '<option value="">Pilih Kota / Kabupaten</option>' + 
                     data.rajaongkir.results.map(k => `<option value="${k.city_id}">${k.type} ${k.city_name}</option>`).join('');
+                
+                // === BARU: Kembalikan true menandakan opsi Kota sukses dirender ===
+                return true; 
             } catch(err) {
                 console.error(err);
                 kotaSelect.innerHTML = '<option value="">Gagal memuat kota</option>';
+                return false;
             }
         }
 
