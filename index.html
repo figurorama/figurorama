@@ -1147,47 +1147,48 @@ async function loadKota() {
 
        // --- PROSES SUBMIT FORM DAN INTEGRASI AKHIR ---
 async function handleFormSubmit(event) {
-            event.preventDefault();
+    event.preventDefault();
 
-            // === DEFINISI URL GAS MASING-MASING GOOGLE SHEET ===
-            const urlGasPesanan = "https://script.google.com/macros/s/AKfycbwWZWiuK9_BU-VruKKWQSS4YBO5gZdUoR9oQQ5MXf10-t9vHnX6_emO8I3zqvaC3nrdlQ/exec";
-            const urlGasPelanggan = "https://script.google.com/macros/s/AKfycbxMZTdR4Wd4A3NfMHlN5zlDa1BpLipJmgFeHAsv6igUtDjhDWszvOxqF9XrQHCDWYVw/exec";
+    // === DEFINISI URL GAS MASING-MASING GOOGLE SHEET ===
+    const urlGasPesanan = "https://script.google.com/macros/s/AKfycbwWZWiuK9_BU-VruKKWQSS4YBO5gZdUoR9oQQ5MXf10-t9vHnX6_emO8I3zqvaC3nrdlQ/exec";
+    const urlGasPelanggan = "https://script.google.com/macros/s/AKfycbxMZTdR4Wd4A3NfMHlN5zlDa1BpLipJmgFeHAsv6igUtDjhDWszvOxqF9XrQHCDWYVw/exec";
+    const urlGasDatabase = "https://script.google.com/macros/s/AKfycbz9y4QMeHBfUpKvUb0fnJUKXRP1IGj0XPFgq_TdTXApaWNhmseggN0Kuk3x0jJd49h0bA/exec";
 
-            const namaPembeli = document.getElementById('form-nama').value.trim();
-            const hpPembeli = document.getElementById('form-hp').value.trim();
-            const alamatPembeli = document.getElementById('form-alamat').value.trim(); 
-            
-            const selectProv = document.getElementById('form-provinsi');
-            const namaProvinsi = selectProv.options[selectProv.selectedIndex].text;
-            const idProvinsi = selectProv.value; 
-            
-            const selectKota = document.getElementById('form-kota');
-            const namaKota = selectKota.options[selectKota.selectedIndex].text;
-            const idKota = selectKota.value; 
+    const namaPembeli = document.getElementById('form-nama').value.trim();
+    const hpPembeli = document.getElementById('form-hp').value.trim();
+    const alamatPembeli = document.getElementById('form-alamat').value.trim(); 
+    
+    const selectProv = document.getElementById('form-provinsi');
+    const namaProvinsi = selectProv.options[selectProv.selectedIndex].text;
+    const idProvinsi = selectProv.value; 
+    
+    const selectKota = document.getElementById('form-kota');
+    const namaKota = selectKota.options[selectKota.selectedIndex].text;
+    const idKota = selectKota.value; 
 
-            // === 1. SIMPAN KE LOCALSTORAGE PENGIRIMAN ===
-            localStorage.setItem('member_nama', namaPembeli);
-            localStorage.setItem('member_hp', hpPembeli);
-            localStorage.setItem('member_alamat', alamatPembeli); 
-            localStorage.setItem('member_provinsi', idProvinsi); 
-            localStorage.setItem('member_kota', idKota);         
+    // === 1. SIMPAN KE LOCALSTORAGE PENGIRIMAN ===
+    localStorage.setItem('member_nama', namaPembeli);
+    localStorage.setItem('member_hp', hpPembeli);
+    localStorage.setItem('member_alamat', alamatPembeli); 
+    localStorage.setItem('member_provinsi', idProvinsi); 
+    localStorage.setItem('member_kota', idKota);         
 
-            // Perbarui sapaan header
-            const welcomeElement = document.getElementById('welcome-member');
-            if (welcomeElement) {
-                welcomeElement.innerHTML = `👋 Halo, <span class="font-bold text-emerald-600 dark:text-emerald-400">${namaPembeli}</span> (Member Toko)`;
-            }
+    // Perbarui sapaan header
+    const welcomeElement = document.getElementById('welcome-member');
+    if (welcomeElement) {
+        welcomeElement.innerHTML = `👋 Halo, <span class="font-bold text-emerald-600 dark:text-emerald-400">${namaPembeli}</span> (Member Toko)`;
+    }
 
-            // Hitung total akhir
-            const totalHargaBarang = cart.reduce((sum, item) => sum + (item.Harga * item.qty), 0);
-            const totalAkhirSemua = totalHargaBarang + ongkirTerpilih;
-            const formattedTotalAkhir = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalAkhirSemua).replace(/\s?/g, '');
+    // Hitung total akhir
+    const totalHargaBarang = cart.reduce((sum, item) => sum + (item.Harga * item.qty), 0);
+    const totalAkhirSemua = totalHargaBarang + ongkirTerpilih;
+    const formattedTotalAkhir = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalAkhirSemua).replace(/\s?/g, '');
 
-            // Gabungkan alamat
-            const alamatKirimLengkap = `${alamatPembeli}, ${namaKota}, ${namaProvinsi}`;
+    // Gabungkan alamat
+    const alamatKirimLengkap = `${alamatPembeli}, ${namaKota}, ${namaProvinsi}`;
 
-            // 2. TEMPLATE PESAN WA (Sudah Diperbaiki dari Typo)
-            const templatePesanWA = `Halo Admin Figurorama, saya ingin memesan item berikut:
+    // 2. TEMPLATE PESAN WA
+    const templatePesanWA = `Halo Admin Figurorama, saya ingin memesan item berikut:
 
 ${globalTextDaftarBelanja}
 📦 Ongkos Kirim: Rp ${ongkirTerpilih.toLocaleString('id-ID')} (${teksKurirTerpilih})
@@ -1204,58 +1205,78 @@ ${globalTextDaftarBelanja}
 
 Saya akan segera melakukan transfer to rekening BCA toko, mohon dikonfirmasi ya Admin, terima kasih!`;
 
-            const finalWaUrl = `https://wa.me/6281322555224?text=${encodeURIComponent(templatePesanWA)}`;
-            
-            // 3. LANGSUNG BUKA WHATSAPP
-            window.open(finalWaUrl, '_blank');
+    const finalWaUrl = `https://wa.me/6281322555224?text=${encodeURIComponent(templatePesanWA)}`;
+    
+    // LANGSUNG BUKA WHATSAPP
+    window.open(finalWaUrl, '_blank');
 
-            // === [BARU] TEMBAK KE GOOGLE SHEET DATA PELANGGAN JIKA PERTAMA KALI ===
-            if (!localStorage.getItem('pelanggan_terdaftar')) {
-                fetch(urlGasPelanggan, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        namalengkap: namaPembeli,
-                        nohp: hpPembeli,
-                        provinsi: namaProvinsi,
-                        kotakabupaten: namaKota,
-                        alamatjalan: alamatPembeli
-                    })
-                })
-                .then(() => {
-                    localStorage.setItem('pelanggan_terdaftar', 'true');
-                })
-                .catch(error => console.error("Gagal mengirim ke Sheet Pelanggan:", error));
-            }
+    // =========================================================================
+    // PROSES EKSEKUSI 3 GAS SPREADSHEET SECARA PARALEL
+    // =========================================================================
+    
+    const payloadData = {
+        nama: namaPembeli,
+        hp: hpPembeli,
+        alamat: `${alamatKirimLengkap} (${teksKurirTerpilih} - Rp ${ongkirTerpilih.toLocaleString('id-ID')})`,
+        belanjaan: globalTextDaftarBelanja + `\nTotal Akhir + Ongkir: ${formattedTotalAkhir}`,
+        items: cart.map(item => ({ nama: item.Nama, qty: item.qty }))
+    };
 
-            // === 4. TEMBAK KE GOOGLE SHEET DATA PESANAN UTAMA (LOG TRANSAKSI) ===
-            fetch(urlGasPesanan, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    nama: namaPembeli,
-                    hp: hpPembeli,
-                    alamat: `${alamatKirimLengkap} (${teksKurirTerpilih} - Rp ${ongkirTerpilih.toLocaleString('id-ID')})`,
-                    belanjaan: globalTextDaftarBelanja + `\nTotal Akhir + Ongkir: ${formattedTotalAkhir}`,
-                    items: cart.map(item => ({ nama: item.Nama, qty: item.qty }))
-                })
-            }).catch(error => console.error("Gagal mengirim ke Sheet Pesanan:", error));
+    // --- PERINTAH 1: Tambah Pelanggan Baru (Hanya jika belum terdaftar) ---
+    if (!localStorage.getItem('pelanggan_terdaftar')) {
+        fetch(urlGasPelanggan, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' }, // Diubah dari application/json + no-cors untuk kestabilan GAS
+            body: JSON.stringify({
+                namalengkap: namaPembeli,
+                nohp: hpPembeli,
+                provinsi: namaProvinsi,
+                kotakabupaten: namaKota,
+                alamatjalan: alamatPembeli
+            })
+        })
+        .then(() => {
+            localStorage.setItem('pelanggan_terdaftar', 'true');
+            console.log("GAS 1: Data Pelanggan Berhasil Diproses.");
+        })
+        .catch(error => console.error("Gagal mengirim ke Sheet Pelanggan:", error));
+    }
 
-            // 5. BERSIHKAN KERANJANG
-            cart = [];
-            globalTextDaftarBelanja = "";
-            ongkirTerpilih = 0;
-            teksKurirTerpilih = "";
-            
-            const orderForm = document.getElementById('internal-shipping-form');
-            if (orderForm) orderForm.reset();
+    // --- PERINTAH 2: Kirim Log Pesanan ke Spreadsheet Pesanan ---
+    fetch(urlGasPesanan, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' }, 
+        body: JSON.stringify(payloadData)
+    })
+    .then(response => response.json())
+    .then(data => console.log("GAS 2: Log Pesanan Berhasil Dicatat.", data))
+    .catch(error => console.error("Gagal mengirim ke Sheet Pesanan:", error));
 
-            updateCartUI();
-            closeFormModal();
-            renderFloatingReviewButton();
-        }
+    // --- PERINTAH 3: Kurangi Stok ke Spreadsheet Database ---
+    fetch(urlGasDatabase, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' }, 
+        body: JSON.stringify(payloadData)
+    })
+    .then(response => response.json())
+    .then(data => console.log("GAS 3: Stok Database Berhasil Dikurangi.", data))
+    .catch(error => console.error("Gagal memotong stok di Sheet Database:", error));
+
+    // =========================================================================
+    // 5. BERSIHKAN KERANJANG & RESET FORM UI
+    // =========================================================================
+    cart = [];
+    globalTextDaftarBelanja = "";
+    ongkirTerpilih = 0;
+    teksKurirTerpilih = "";
+    
+    const orderForm = document.getElementById('internal-shipping-form');
+    if (orderForm) orderForm.reset();
+
+    updateCartUI();
+    closeFormModal();
+    renderFloatingReviewButton();
+}
 
         // Fungsi penjembatan dari dropdown select ke sistem filter asli
         function handleCategoryDropdownChange(selectElement) {
@@ -1467,8 +1488,6 @@ function processImageKunjungan(inputElement, targetInputId, previewId) {
     }
 }
 
-// === MENGAMBIL DAN MERENDER DATA DARI GOOGLE SHEET CSV ===
-// === MENGAMBIL DAN MERENDER DATA DARI GOOGLE SHEET CSV ===
 // === MENGAMBIL DAN MERENDER DATA DARI GOOGLE SHEET CSV ===
 async function loadTestimonialsFromCSV() {
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSNi0jtMY2RiZDWlj4BihM6LrQfa_OsnUuGZf2tkN11J0UYIK2TUxbBeCIgPEVCpC2mygKTsXcYZa_X/pub?gid=0&single=true&output=csv";
