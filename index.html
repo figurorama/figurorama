@@ -1131,7 +1131,7 @@
         }
 
        // --- PROSES SUBMIT FORM DAN INTEGRASI AKHIR ---
-        async function handleFormSubmit(event) {
+async function handleFormSubmit(event) {
             event.preventDefault();
 
             const namaPembeli = document.getElementById('form-nama').value.trim();
@@ -1191,7 +1191,29 @@ Saya akan segera melakukan transfer to rekening BCA toko, mohon dikonfirmasi ya 
             // 3. LANGSUNG BUKA WHATSAPP
             window.open(finalWaUrl, '_blank');
 
-            // 4. KIRIM DATA KE GOOGLE SHEETS DI LATAR BELAKANG
+            // === [BARU] DETEKSI DAN INPUT GOOGLE SHEETS JIKA BARU PERTAMA KALI MENCET ===
+            if (!localStorage.getItem('pelanggan_terdaftar')) {
+                fetch(googleSheetsWebAppUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        tipe: "pelangganBaru",
+                        namalengkap: namaPembeli,
+                        nohp: hpPembeli,
+                        provinsi: namaProvinsi,
+                        kotakabupaten: namaKota,
+                        alamatjalan: alamatPembeli
+                    })
+                })
+                .then(() => {
+                    // Kunci status di browser pembeli setelah sukses terkirim ke latar belakang
+                    localStorage.setItem('pelanggan_terdaftar', 'true');
+                })
+                .catch(error => console.error("Gagal mencatat data pelanggan baru:", error));
+            }
+
+            // 4. KIRIM DATA KE GOOGLE SHEETS DI LATAR BELAKANG (Log Transaksi Lamamu)
             fetch(googleSheetsWebAppUrl, {
                 method: 'POST',
                 mode: 'no-cors',
