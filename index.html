@@ -1315,7 +1315,13 @@ document.addEventListener("DOMContentLoaded", () => {
 // Buka - Tutup Box Chat
 function toggleReviewChat() {
     const chatBox = document.getElementById('chat-review-box');
-    if (chatBox) chatBox.classList.toggle('hidden');
+    if (chatBox) {
+        chatBox.classList.toggle('hidden');
+        // Jika box dibuka (tidak tersembunyi), jalankan penarikan data CSV terbaru
+        if (!chatBox.classList.contains('hidden')) {
+            loadTestimonialsFromCSV();
+        }
+    }
 }
 
 // Fungsi bantu intersep loader milikmu agar tidak merusak UI global
@@ -1379,7 +1385,10 @@ async function submitTestimonial(event) {
         // Reset element input formulir chat
         document.getElementById('form-review-chat').reset();
         clearTestiImage();
-        toggleReviewChat(); // Tutup chatbox otomatis
+
+	setTimeout(() => {
+            loadTestimonialsFromCSV();
+        }, 1500);
 
     } catch (err) {
         console.error("Gagal mengirim ulasan:", err);
@@ -1457,6 +1466,108 @@ function processImageKunjungan(inputElement, targetInputId, previewId) {
         alert("Terjadi masalah sistem: " + globalError.message);
     }
 }
+
+// === MENGAMBIL DAN MERENDER DATA DARI GOOGLE SHEET CSV ===
+async function loadTestimonialsFromCSV() {
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSNi0jtMY2RiZDWlj4BihM6LrQfa_OsnUuGZf2tkN11J0UYIK2TUxbBeCIgPEVCpC2mygKTsXcYZa_X/pub?gid=0&single=true&output=csv";
+    const container = document.getElementById('chat-messages-container');
+    if (!container) return;
+
+    try {
+        const res = await fetch(csvUrl);
+        const csvText = await res.text();
+        
+        // Bersihkan dan pecah CSV berdasarkan baris baru
+        const lines = csvText.split(/\r?\n/);
+        
+        // Jika kosong atau hanya ada header (baris 1)
+        if (lines.length <= 1 || lines[0].trim() === "") {
+            container.innerHTML = `<div class="self-center bg-amber-100 text-[11px] text-amber-900 px-3 py-1 rounded shadow-sm text-center">Belum ada review dari pelanggan.</div>`;
+            return;
+        }
+
+        let htmlContent = `
+            <div class="self-center bg-amber-100 dark:bg-amber-900 text-[11px] text-amber-900 dark:text-amber-100 px-3 py-1 rounded shadow-sm text-center max-w-[85%] mb-2">
+                🔒 Menampilkan ulasan terverifikasi pembeli Figurorama.
+            </div>
+        `;
+
+        // Loop dari baris kedua (indeks 1) karena indeks 0 adalah Header (Timestamp,Nama,Isi Pesan,Foto)
+        for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+
+            // Fungsi parser sederhana untuk menangani koma di dalam tanda kutip CSV
+            const columns = parseCSVLine(lines[i]);
+            if (columns.length < 3) continue;
+
+            const timestamp = columns[0];
+            const namaPelanggan = columns[1];
+            const isiPesan = columns[2];
+            const fotoBase64 = columns[3] || "";
+
+            // Format Jam Menit dari kolom timestamp untuk estetika WhatsApp chat
+            let timeString = "Terverifikasi";
+            try {
+                if(timestamp) {
+                    const dateObj = new Date(timestamp);
+                    if(!isNaN(dateObj.getTime())) {
+                        timeString = dateObj.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
+                    }
+                }
+            } catch(e) {}
+
+            // Cek apakah review ini milik user yang sedang login saat ini atau orang lain
+            const currentMember = localStorage.getItem('member_nama');
+            const isMyChat = (currentMember && currentMember.trim().toLowerCase() === namaPelanggan.trim().toLowerCase());
+
+            // Tentukan gaya bubble (Kanan untuk diri sendiri / Hijau, Kiri untuk pelanggan lain / Putih)
+            const bubbleSideClass = isMyChat ? 'self-end bg-[#d9fdd3] dark:bg-emerald-950 text-gray-800 dark:text-gray-100 rounded-tr-none' : 'self-start bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-tl-none';
+            const nameColorClass = isMyChat ? 'text-emerald-700 dark:text-emerald-400 text-right' : 'text-blue-600 dark:text-blue-400';
+
+            // Siapkan tag gambar jika ada data Base64 foto
+            let imageTag = "";
+            if (fotoBase64 && fotoBase64.startsWith("data:image")) {
+                imageTag = `<div class="mt-2 rounded overflow-hidden max-w-full border border-gray-200 dark:border-gray-600">
+                                <img src="${fotoBase64}" alt="Foto Review" class="w-full h-auto object-cover max-h-48 cursor-pointer" onclick="window.open('${fotoBase64}', '_blank')">
+                            </div>`;
+            }
+
+            htmlContent += `
+                <div class="${bubbleSideClass} p-3 rounded-lg shadow-sm max-w-[85%] text-xs relative flex flex-col w-fit">
+                    <span class="font-bold text-[10px] ${nameColorClass} block mb-0.5">${namaPelanggan}</span>
+                    <p class="whitespace-pre-wrap leading-relaxed">${isiPesan}</p>
+                    ${imageTag}
+                    <span class="text-[9px] text-gray-400 block text-right mt-1 w-full">${timeString}</span>
+                </div>
+            `;
+        }
+
+        container.innerHTML = htmlContent;
+
+        // Auto-scroll otomatis ke review paling bawah/baru setelah termuat
+        setTimeout(() => {
+            container.scrollTop = container.scrollHeight;
+        }, 200);
+
+    } catch (err) {
+        console.error("Gagal memuat testimoni:", err);
+        container.innerHTML = `<div class="self-center bg-red-100 text-[11px] text-red-900 px-3 py-1 rounded shadow-sm text-center">Gagal memuat ulasan pelanggan.</div>`;
+    }
+}
+
+// Helper Parser CSV agar ulasan yang mengandung koma atau enter di dalam kutip tidak rusak kolomnya
+function parseCSVLine(text) {
+    let p = '', r = [];
+    let q = false;
+    for (let i = 0; i < text.length; i++) {
+        let c = text[i];
+        if (c === '"') { q = !q; }
+        else if (c === ',' && !q) { r.push(p); p = ''; }
+        else { p += c; }
+    }
+    r.push(p);
+    return r.map(val => val.replace(/^"|"$/g, '').trim());
+}
     </script>
 
 <!-- Floating Action Button (FAB) Review -->
@@ -1484,17 +1595,11 @@ function processImageKunjungan(inputElement, targetInputId, previewId) {
         </button>
     </div>
 
-    <!-- Area Obrolan (Chat History Dummy/Statis) -->
-    <div class="flex-1 p-4 overflow-y-auto space-y-3 flex flex-col justify-end">
-        <!-- System Message -->
-        <div class="self-center bg-amber-100 dark:bg-amber-900 text-[11px] text-amber-900 dark:text-amber-100 px-3 py-1 rounded shadow-sm text-center max-w-[85%]">
-            🔒 Pesan ini dikirim langsung ke database ekosistem Figurorama.
-        </div>
-        <!-- Bubble Chat Default dari Toko -->
-        <div class="self-start bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 p-3 rounded-lg rounded-tl-none shadow-sm max-w-[80%] text-xs relative">
-            <span class="font-semibold text-emerald-600 block mb-1">Admin Figurorama</span>
-            Halo! Terima kasih sudah berbelanja. Bagaimana kualitas custom action figure pesananmu? Yuk, tulis review-mu di bawah ini! 👇
-            <span class="text-[9px] text-gray-400 block text-right mt-1">17:00</span>
+<!-- AREA CHAT DINAMIS (DIUBAH KE JUSTIFY-START & DIBERIKAN ID) -->
+    <div id="chat-messages-container" class="flex-1 p-4 overflow-y-auto space-y-3 flex flex-col justify-start">
+        <!-- Data review dari CSV akan dimuat otomatis di sini lewat JavaScript -->
+        <div class="self-center bg-gray-200 dark:bg-gray-700 text-[11px] text-gray-600 dark:text-gray-300 px-3 py-1 rounded shadow-sm text-center animate-pulse">
+            Memuat ulasan pelanggan...
         </div>
     </div>
 
