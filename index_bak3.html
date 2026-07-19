@@ -112,7 +112,6 @@
     </div>
 
     <main class="max-w-6xl mx-auto px-4 py-6 sm:py-12">
-
         <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
             <p class="text-center col-span-full text-gray-500 dark:text-gray-400 py-12">Memuat katalog produk Figurorama...</p>
         </div>
@@ -325,6 +324,7 @@
                 <p class="mb-1">📱 WhatsApp: <a href="https://wa.me/6281322555224" class="text-emerald-600 dark:text-emerald-400 hover:underline">081322555224</a></p>
             </div>
         </div>
+        <div class="text-center mt-8 pt-4 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-400 dv>
         <div class="text-center mt-8 pt-4 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-400 dark:text-gray-500">
             &copy; 2026 Figurorama. Hosted beautifully on GitHub Pages.
         </div>
@@ -665,8 +665,29 @@
                     htmlHarga = `<span class="text-gray-700 dark:text-gray-200 font-extrabold text-sm sm:text-lg block">${formattedNormal}</span>`;
                 }
 
+                // Kondisional tombol bawah berdasarkan mode admin
+                let htmlTombolBawah = "";
+                if (isAdminMode) {
+                    htmlTombolBawah = `
+                        <div class="p-2.5 sm:p-4 pt-0 grid grid-cols-2 gap-2">
+                            <button onclick="event.stopPropagation(); openAdminFormModal('edit', '${namaAman}')" class="bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold py-1.5 px-2 rounded-lg transition">
+                                ✏️ Edit
+                            </button>
+                            <button onclick="event.stopPropagation(); handleAdminDelete('${namaAman}')" class="bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold py-1.5 px-2 rounded-lg transition">
+                                🗑️ Hapus
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    htmlTombolBawah = `
+                        <div class="p-2.5 sm:p-4 pt-0 text-center text-[11px] sm:text-xs font-medium text-emerald-600 dark:text-emerald-400 group-hover:underline">
+                            Lihat Detail ➔
+                        </div>
+                    `;
+                }
+
                 return `
-                    <div onclick="openModalByName('${namaAman}')" class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition duration-300 flex flex-col justify-between cursor-pointer group">
+                    <div ${isAdminMode ? '' : `onclick="openModalByName('${namaAman}')"`} class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition duration-300 flex flex-col justify-between cursor-pointer group">
                         <div>
                             <div class="relative pb-[100%] bg-gray-50 dark:bg-gray-900 overflow-hidden">
                                 <img src="${p.Foto || 'https://via.placeholder.com/300?text=No+Image'}" alt="${namaProduk}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
@@ -687,9 +708,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="p-2.5 sm:p-4 pt-0 text-center text-[11px] sm:text-xs font-medium text-emerald-600 dark:text-emerald-400 group-hover:underline">
-                            Lihat Detail ➔
-                        </div>
+                        ${htmlTombolBawah}
                     </div>
                 `;
             }).join('');
@@ -1147,47 +1166,48 @@ async function loadKota() {
 
        // --- PROSES SUBMIT FORM DAN INTEGRASI AKHIR ---
 async function handleFormSubmit(event) {
-            event.preventDefault();
+    event.preventDefault();
 
-            // === DEFINISI URL GAS MASING-MASING GOOGLE SHEET ===
-            const urlGasPesanan = "https://script.google.com/macros/s/AKfycbwWZWiuK9_BU-VruKKWQSS4YBO5gZdUoR9oQQ5MXf10-t9vHnX6_emO8I3zqvaC3nrdlQ/exec";
-            const urlGasPelanggan = "https://script.google.com/macros/s/AKfycbxMZTdR4Wd4A3NfMHlN5zlDa1BpLipJmgFeHAsv6igUtDjhDWszvOxqF9XrQHCDWYVw/exec";
+    // === DEFINISI URL GAS MASING-MASING GOOGLE SHEET ===
+    const urlGasPesanan = "https://script.google.com/macros/s/AKfycbwWZWiuK9_BU-VruKKWQSS4YBO5gZdUoR9oQQ5MXf10-t9vHnX6_emO8I3zqvaC3nrdlQ/exec";
+    const urlGasPelanggan = "https://script.google.com/macros/s/AKfycbxMZTdR4Wd4A3NfMHlN5zlDa1BpLipJmgFeHAsv6igUtDjhDWszvOxqF9XrQHCDWYVw/exec";
+    const urlGasDatabase = "https://script.google.com/macros/s/AKfycbz9y4QMeHBfUpKvUb0fnJUKXRP1IGj0XPFgq_TdTXApaWNhmseggN0Kuk3x0jJd49h0bA/exec";
 
-            const namaPembeli = document.getElementById('form-nama').value.trim();
-            const hpPembeli = document.getElementById('form-hp').value.trim();
-            const alamatPembeli = document.getElementById('form-alamat').value.trim(); 
-            
-            const selectProv = document.getElementById('form-provinsi');
-            const namaProvinsi = selectProv.options[selectProv.selectedIndex].text;
-            const idProvinsi = selectProv.value; 
-            
-            const selectKota = document.getElementById('form-kota');
-            const namaKota = selectKota.options[selectKota.selectedIndex].text;
-            const idKota = selectKota.value; 
+    const namaPembeli = document.getElementById('form-nama').value.trim();
+    const hpPembeli = document.getElementById('form-hp').value.trim();
+    const alamatPembeli = document.getElementById('form-alamat').value.trim(); 
+    
+    const selectProv = document.getElementById('form-provinsi');
+    const namaProvinsi = selectProv.options[selectProv.selectedIndex].text;
+    const idProvinsi = selectProv.value; 
+    
+    const selectKota = document.getElementById('form-kota');
+    const namaKota = selectKota.options[selectKota.selectedIndex].text;
+    const idKota = selectKota.value; 
 
-            // === 1. SIMPAN KE LOCALSTORAGE PENGIRIMAN ===
-            localStorage.setItem('member_nama', namaPembeli);
-            localStorage.setItem('member_hp', hpPembeli);
-            localStorage.setItem('member_alamat', alamatPembeli); 
-            localStorage.setItem('member_provinsi', idProvinsi); 
-            localStorage.setItem('member_kota', idKota);         
+    // === 1. SIMPAN KE LOCALSTORAGE PENGIRIMAN ===
+    localStorage.setItem('member_nama', namaPembeli);
+    localStorage.setItem('member_hp', hpPembeli);
+    localStorage.setItem('member_alamat', alamatPembeli); 
+    localStorage.setItem('member_provinsi', idProvinsi); 
+    localStorage.setItem('member_kota', idKota);         
 
-            // Perbarui sapaan header
-            const welcomeElement = document.getElementById('welcome-member');
-            if (welcomeElement) {
-                welcomeElement.innerHTML = `👋 Halo, <span class="font-bold text-emerald-600 dark:text-emerald-400">${namaPembeli}</span> (Member Toko)`;
-            }
+    // Perbarui sapaan header
+    const welcomeElement = document.getElementById('welcome-member');
+    if (welcomeElement) {
+        welcomeElement.innerHTML = `👋 Halo, <span class="font-bold text-emerald-600 dark:text-emerald-400">${namaPembeli}</span> (Member Toko)`;
+    }
 
-            // Hitung total akhir
-            const totalHargaBarang = cart.reduce((sum, item) => sum + (item.Harga * item.qty), 0);
-            const totalAkhirSemua = totalHargaBarang + ongkirTerpilih;
-            const formattedTotalAkhir = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalAkhirSemua).replace(/\s?/g, '');
+    // Hitung total akhir
+    const totalHargaBarang = cart.reduce((sum, item) => sum + (item.Harga * item.qty), 0);
+    const totalAkhirSemua = totalHargaBarang + ongkirTerpilih;
+    const formattedTotalAkhir = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalAkhirSemua).replace(/\s?/g, '');
 
-            // Gabungkan alamat
-            const alamatKirimLengkap = `${alamatPembeli}, ${namaKota}, ${namaProvinsi}`;
+    // Gabungkan alamat
+    const alamatKirimLengkap = `${alamatPembeli}, ${namaKota}, ${namaProvinsi}`;
 
-            // 2. TEMPLATE PESAN WA (Sudah Diperbaiki dari Typo)
-            const templatePesanWA = `Halo Admin Figurorama, saya ingin memesan item berikut:
+    // 2. TEMPLATE PESAN WA
+    const templatePesanWA = `Halo Admin Figurorama, saya ingin memesan item berikut:
 
 ${globalTextDaftarBelanja}
 📦 Ongkos Kirim: Rp ${ongkirTerpilih.toLocaleString('id-ID')} (${teksKurirTerpilih})
@@ -1204,58 +1224,78 @@ ${globalTextDaftarBelanja}
 
 Saya akan segera melakukan transfer to rekening BCA toko, mohon dikonfirmasi ya Admin, terima kasih!`;
 
-            const finalWaUrl = `https://wa.me/6281322555224?text=${encodeURIComponent(templatePesanWA)}`;
-            
-            // 3. LANGSUNG BUKA WHATSAPP
-            window.open(finalWaUrl, '_blank');
+    const finalWaUrl = `https://wa.me/6281322555224?text=${encodeURIComponent(templatePesanWA)}`;
+    
+    // LANGSUNG BUKA WHATSAPP
+    window.open(finalWaUrl, '_blank');
 
-            // === [BARU] TEMBAK KE GOOGLE SHEET DATA PELANGGAN JIKA PERTAMA KALI ===
-            if (!localStorage.getItem('pelanggan_terdaftar')) {
-                fetch(urlGasPelanggan, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        namalengkap: namaPembeli,
-                        nohp: hpPembeli,
-                        provinsi: namaProvinsi,
-                        kotakabupaten: namaKota,
-                        alamatjalan: alamatPembeli
-                    })
-                })
-                .then(() => {
-                    localStorage.setItem('pelanggan_terdaftar', 'true');
-                })
-                .catch(error => console.error("Gagal mengirim ke Sheet Pelanggan:", error));
-            }
+    // =========================================================================
+    // PROSES EKSEKUSI 3 GAS SPREADSHEET SECARA PARALEL
+    // =========================================================================
+    
+    const payloadData = {
+        nama: namaPembeli,
+        hp: hpPembeli,
+        alamat: `${alamatKirimLengkap} (${teksKurirTerpilih} - Rp ${ongkirTerpilih.toLocaleString('id-ID')})`,
+        belanjaan: globalTextDaftarBelanja + `\nTotal Akhir + Ongkir: ${formattedTotalAkhir}`,
+        items: cart.map(item => ({ nama: item.Nama, qty: item.qty }))
+    };
 
-            // === 4. TEMBAK KE GOOGLE SHEET DATA PESANAN UTAMA (LOG TRANSAKSI) ===
-            fetch(urlGasPesanan, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    nama: namaPembeli,
-                    hp: hpPembeli,
-                    alamat: `${alamatKirimLengkap} (${teksKurirTerpilih} - Rp ${ongkirTerpilih.toLocaleString('id-ID')})`,
-                    belanjaan: globalTextDaftarBelanja + `\nTotal Akhir + Ongkir: ${formattedTotalAkhir}`,
-                    items: cart.map(item => ({ nama: item.Nama, qty: item.qty }))
-                })
-            }).catch(error => console.error("Gagal mengirim ke Sheet Pesanan:", error));
+    // --- PERINTAH 1: Tambah Pelanggan Baru (Hanya jika belum terdaftar) ---
+    if (!localStorage.getItem('pelanggan_terdaftar')) {
+        fetch(urlGasPelanggan, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' }, // Diubah dari application/json + no-cors untuk kestabilan GAS
+            body: JSON.stringify({
+                namalengkap: namaPembeli,
+                nohp: hpPembeli,
+                provinsi: namaProvinsi,
+                kotakabupaten: namaKota,
+                alamatjalan: alamatPembeli
+            })
+        })
+        .then(() => {
+            localStorage.setItem('pelanggan_terdaftar', 'true');
+            console.log("GAS 1: Data Pelanggan Berhasil Diproses.");
+        })
+        .catch(error => console.error("Gagal mengirim ke Sheet Pelanggan:", error));
+    }
 
-            // 5. BERSIHKAN KERANJANG
-            cart = [];
-            globalTextDaftarBelanja = "";
-            ongkirTerpilih = 0;
-            teksKurirTerpilih = "";
-            
-            const orderForm = document.getElementById('internal-shipping-form');
-            if (orderForm) orderForm.reset();
+    // --- PERINTAH 2: Kirim Log Pesanan ke Spreadsheet Pesanan ---
+    fetch(urlGasPesanan, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' }, 
+        body: JSON.stringify(payloadData)
+    })
+    .then(response => response.json())
+    .then(data => console.log("GAS 2: Log Pesanan Berhasil Dicatat.", data))
+    .catch(error => console.error("Gagal mengirim ke Sheet Pesanan:", error));
 
-            updateCartUI();
-            closeFormModal();
-            renderFloatingReviewButton();
-        }
+    // --- PERINTAH 3: Kurangi Stok ke Spreadsheet Database ---
+    fetch(urlGasDatabase, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' }, 
+        body: JSON.stringify(payloadData)
+    })
+    .then(response => response.json())
+    .then(data => console.log("GAS 3: Stok Database Berhasil Dikurangi.", data))
+    .catch(error => console.error("Gagal memotong stok di Sheet Database:", error));
+
+    // =========================================================================
+    // 5. BERSIHKAN KERANJANG & RESET FORM UI
+    // =========================================================================
+    cart = [];
+    globalTextDaftarBelanja = "";
+    ongkirTerpilih = 0;
+    teksKurirTerpilih = "";
+    
+    const orderForm = document.getElementById('internal-shipping-form');
+    if (orderForm) orderForm.reset();
+
+    updateCartUI();
+    closeFormModal();
+    renderFloatingReviewButton();
+}
 
         // Fungsi penjembatan dari dropdown select ke sistem filter asli
         function handleCategoryDropdownChange(selectElement) {
@@ -1292,6 +1332,9 @@ Saya akan segera melakukan transfer to rekening BCA toko, mohon dikonfirmasi ya 
         window.onload = function() {
             fetchProducts();
             checkReturnMember();
+            if (isAdminMode) {
+            document.getElementById('admin-actions-container').classList.remove('hidden');
+}
         };
 
 // === PENGENDALI VISIBILITAS FAB BERDASARKAN LOCALSTORAGE ===
@@ -1468,8 +1511,6 @@ function processImageKunjungan(inputElement, targetInputId, previewId) {
 }
 
 // === MENGAMBIL DAN MERENDER DATA DARI GOOGLE SHEET CSV ===
-// === MENGAMBIL DAN MERENDER DATA DARI GOOGLE SHEET CSV ===
-// === MENGAMBIL DAN MERENDER DATA DARI GOOGLE SHEET CSV ===
 async function loadTestimonialsFromCSV() {
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSNi0jtMY2RiZDWlj4BihM6LrQfa_OsnUuGZf2tkN11J0UYIK2TUxbBeCIgPEVCpC2mygKTsXcYZa_X/pub?gid=0&single=true&output=csv";
     const container = document.getElementById('chat-messages-container');
@@ -1561,14 +1602,325 @@ function parseCSVLine(text) {
     r.push(p);
     return r.map(val => val.replace(/^"|"$/g, '').trim());
 }
+
+// Gantilah dengan URL Web App Google Apps Script (GAS) khusus Database milikmu
+const urlGasDatabaseAdmin = "https://script.google.com/macros/s/AKfycbz9y4QMeHBfUpKvUb0fnJUKXRP1IGj0XPFgq_TdTXApaWNhmseggN0Kuk3x0jJd49h0bA/exec";
+
+function openAdminFormModal(action, productName = '') {
+    const modal = document.getElementById('admin-crud-modal');
+    const form = document.getElementById('admin-crud-form');
+    form.reset();
+    
+    // Reset preview gambar bawaan & label ukurannya
+    for (let i = 1; i <= 5; i++) {
+        const previewEl = document.getElementById(`preview-foto${i}`);
+        const sizeEl = document.getElementById(`size-prod-foto${i}`);
+        if (previewEl) previewEl.innerHTML = i === 1 ? 'Utama' : `Foto ${i}`;
+        if (sizeEl) sizeEl.innerText = '0 KB';
+        const hiddenInput = document.getElementById(`prod-foto${i}`);
+        if (hiddenInput) hiddenInput.value = '';
+    }
+    
+    document.getElementById('admin-form-action').value = action;
+    
+    if (action === 'add') {
+        document.getElementById('admin-modal-title').innerText = "➕ Tambah Item Baru";
+        document.getElementById('admin-form-original-name').value = "";
+    } else if (action === 'edit') {
+        document.getElementById('admin-modal-title').innerText = "✏️ Edit Produk";
+        document.getElementById('admin-form-original-name').value = productName;
+        
+        const p = allProducts.find(item => item.Nama === productName);
+        if (p) {
+            // Mapping field data sesuai kolom spreadsheet
+            document.getElementById('admin-p-nama').value = p.Nama || '';
+            document.getElementById('admin-p-harga').value = p.Harga ? p.Harga.replace(/[^0-9]/g, '') : '0';
+            document.getElementById('admin-p-berat').value = p.Berat ? p.Berat.replace(/[^0-9]/g, '') : '0';
+            document.getElementById('admin-p-stock').value = p.Stock ? p.Stock.replace(/[^0-9]/g, '') : '1';
+            document.getElementById('admin-p-diskon').value = p.Diskon ? p.Diskon.replace(/[^0-9]/g, '') : '0';
+            document.getElementById('admin-p-kategori').value = p.Kategori || '';
+            document.getElementById('admin-p-featured').value = p.Featured === 'Yes' ? 'Yes' : 'No';
+            document.getElementById('admin-p-deskripsi').value = p.Deskripsi || '';
+            document.getElementById('admin-p-tokopedia').value = p.Tokopedia || '';
+            
+            // Mapping string base64 / URL gambar ke input tersembunyi
+            document.getElementById('prod-foto1').value = p.Foto || '';
+            document.getElementById('prod-foto2').value = p.Foto2 || '';
+            document.getElementById('prod-foto3').value = p.Foto3 || '';
+            document.getElementById('prod-foto4').value = p.Foto4 || '';
+            document.getElementById('prod-foto5').value = p.Foto5 || '';
+
+            // Render ulang tampilan preview kotak gambar
+            for (let i = 1; i <= 5; i++) {
+                const key = i === 1 ? 'Foto' : `Foto${i}`;
+                const previewEl = document.getElementById(`preview-foto${i}`);
+                if (p[key] && previewEl && p[key].trim() !== "") {
+                    previewEl.innerHTML = `<img src="${p[key]}" class="w-full h-full object-cover rounded-lg">`;
+                }
+            }
+        }
+    }
+    modal.classList.remove('hidden');
+}
+
+function closeAdminFormModal() {
+    const modal = document.getElementById('admin-crud-modal');
+    const form = document.getElementById('admin-crud-form');
+    modal.classList.add('hidden');
+    form.reset();
+}
+
+async function handleAdminFormSubmit(event) {
+    event.preventDefault();
+    const action = document.getElementById('admin-form-action').value;
+    const submitBtn = document.getElementById('admin-btn-submit');
+    
+    // Payload disesuaikan agar properti camelCase / lowercase sinkron dengan code.gs baru
+const payload = {
+    action: action === 'add' ? 'insertProduct' : 'updateProduct',
+    originalName: document.getElementById('admin-form-original-name').value,
+    nama: document.getElementById('admin-p-nama').value.trim(),
+    harga: document.getElementById('admin-p-harga').value,
+    berat: document.getElementById('admin-p-berat').value,
+    stock: document.getElementById('admin-p-stock').value,
+    diskon: document.getElementById('admin-p-diskon').value,
+    kategori: document.getElementById('admin-p-kategori').value.trim(),
+    featured: document.getElementById('admin-p-featured').value,
+    deskripsi: document.getElementById('admin-p-deskripsi').value.trim(),
+    tokopedia: document.getElementById('admin-p-tokopedia').value.trim(), // Aman dikirim kosong karena di code.gs dihandle
+    foto1: document.getElementById('prod-foto1').value,
+    foto2: document.getElementById('prod-foto2').value,
+    foto3: document.getElementById('prod-foto3').value,
+    foto4: document.getElementById('prod-foto4').value,
+    foto5: document.getElementById('prod-foto5').value
+};
+
+    submitBtn.disabled = true;
+    submitBtn.innerText = "Memproses ke Google Sheet...";
+
+    try {
+        await fetch(urlGasDatabaseAdmin, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify(payload)
+        });
+        alert("Berhasil memperbarui data database! Halaman akan memuat ulang.");
+        location.reload();
+    } catch (error) {
+        console.error(error);
+        alert("Gagal memproses perubahan ke spreadsheet.");
+    } finally {
+        submitBtn.disabled = false;
+        closeAdminFormModal();
+    }
+}
+
+async function handleAdminDelete(productName) {
+    if (!confirm(`Apakah Anda yakin ingin menghapus produk "${productName}" secara permanen dari Google Sheet?`)) return;
+
+    try {
+        await fetch(urlGasDatabaseAdmin, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({
+                action: 'deleteProduct',
+                nama: productName
+            })
+        });
+        alert("Produk berhasil dihapus! Halaman akan memuat ulang.");
+        location.reload();
+    } catch (error) {
+        console.error(error);
+        alert("Gagal menghapus produk.");
+    }
+}
+
+function showFiguroramaLoading(show, message = "") {
+    const loadingEl = document.getElementById('modal-loading-status');
+    if (loadingEl) {
+        loadingEl.innerText = message;
+        if (show) {
+            loadingEl.classList.remove('hidden');
+        } else {
+            loadingEl.classList.add('hidden');
+        }
+    }
+}
+
+function processProductImage(inputElement, targetInputId, previewId) {
+    const file = inputElement.files[0];
+    if (!file) return;
+
+    showFiguroramaLoading(true, "Mengompresi gambar...");
+    let sizeLabelId = `size-${targetInputId}`;
+
+    try {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                try {
+                    const maxDimension = 480;
+                    let targetWidth, targetHeight;
+
+                    if (img.width > img.height) {
+                        targetWidth = maxDimension;
+                        targetHeight = Math.round((maxDimension / img.width) * img.height);
+                    } else {
+                        targetHeight = maxDimension;
+                        targetWidth = Math.round((maxDimension / img.height) * img.width);
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = targetWidth;
+                    canvas.height = targetHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+                    const base64Result = canvas.toDataURL('image/jpeg', 0.45);
+                    const stringLength = base64Result.length - base64Result.indexOf(',') - 1;
+                    const fileSizeInKB = (stringLength * 3 / 4) / 1024;
+
+                    document.getElementById(targetInputId).value = base64Result;
+
+                    const previewContainer = document.getElementById(previewId);
+                    if (previewContainer) {
+                        previewContainer.innerHTML = `<img src="${base64Result}" class="w-full h-full object-cover rounded-lg">`;
+                    }
+                    
+                    const sizeLabel = document.getElementById(sizeLabelId);
+                    if (sizeLabel) {
+                        sizeLabel.innerText = `${fileSizeInKB.toFixed(1)} KB`;
+                        if (fileSizeInKB > 30) {
+                            sizeLabel.className = "text-[9px] font-semibold text-amber-600 dark:text-amber-400";
+                            sizeLabel.innerText += " (>30KB)";
+                        } else {
+                            sizeLabel.className = "text-[9px] font-semibold text-emerald-600 dark:text-emerald-400";
+                        }
+                    }
+                    showFiguroramaLoading(false);
+                } catch (innerError) {
+                    showFiguroramaLoading(false);
+                    alert("Gagal memproses gambar: " + innerError.message);
+                }
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    } catch (globalError) {
+        showFiguroramaLoading(false);
+        alert("Terjadi masalah sistem: " + globalError.message);
+    }
+}
+
+// INPUT CODE
+        let isAdminMode = (sessionStorage.getItem('isAdmin') === 'true');
+        let editingProductRowIndex = null; // Menyimpan baris mana yang sedang diedit
+        const HASH_ADMIN_RAHASIA = "374961f303553001f5b4e05537bc655b02795ed2501866a94241caf70239e20f";
+async function hitungSHA256(teks) {
+    const msgBuffer = new TextEncoder().encode(teks);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// 1. Fungsi untuk MENAMPILKAN modal (dipanggil saat tekan Alt + A)
+// Fungsi untuk memunculkan Modal
+function bukaPintuAdmin() {
+    const modal = document.getElementById('modal-login-admin');
+    const inputPass = document.getElementById('input-password-admin');
+    
+    modal.classList.remove('hidden'); // Membuka modal
+    inputPass.focus(); // Fokus ke input password
+}
+
+// Fungsi untuk menutup Modal
+function tutupModalLogin() {
+    const modal = document.getElementById('modal-login-admin');
+    modal.classList.add('hidden'); // Menutup modal
+}
+
+// Fungsi untuk proses logika loginnya
+async function prosesLoginAdmin() {
+    const inputPass = document.getElementById('input-password-admin');
+    const passwordInput = inputPass.value;
+    
+    if (passwordInput) {
+        const hashInput = await hitungSHA256(passwordInput);
+        
+        if (hashInput === HASH_ADMIN_RAHASIA) {
+            sessionStorage.setItem('isAdmin', 'true');
+            alert("Akses Admin Diterima!");
+            window.location.href = window.location.origin + window.location.pathname;
+        } else {
+            alert("Kunci Salah!");
+            inputPass.value = '';
+            inputPass.focus();
+        }
+    }
+}
+
+// Event listener buat pemicu Alt + A
+window.addEventListener('keydown', function(e) {
+    if (e.altKey && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        bukaPintuAdmin(); 
+    }
+});
+
+document.getElementById('input-password-admin').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        prosesLoginAdmin();
+    }
+});
+
+function logoutAdmin() {
+    sessionStorage.removeItem('isAdmin');
+    isAdminMode = false;
+    alert("Anda telah keluar dari mode Admin.");
+    window.location.href = window.location.origin + window.location.pathname;
+}
     </script>
 
-<!-- Floating Action Button (FAB) Review -->
-<div id="fab-review-container" class="hidden fixed bottom-6 left-6 z-50">
-    <button onclick="toggleReviewChat()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-3 rounded-full shadow-xl transition-all duration-300 transform hover:scale-105">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-        <span>Review Pembeli</span>
-    </button>
+<!-- MODAL PASSWORD -->
+<div id="modal-login-admin" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 hidden">
+    <div class="bg-white p-6 rounded-xl shadow-2xl w-[90%] max-w-sm transform transition-all">
+        <h3 class="text-lg font-bold mb-4 text-gray-800">🔒 Akses Admin</h3>
+        <input type="password" id="input-password-admin" 
+               class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black" 
+               placeholder="Masukkan kunci...">
+        <div class="flex justify-end gap-2">
+            <button onclick="tutupModalLogin()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-lg transition">Batal</button>
+            <button onclick="prosesLoginAdmin()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition">Masuk</button>
+        </div>
+    </div>
+</div>
+
+<!-- Combined Floating Action Buttons (Kiri Bawah) -->
+<div class="fixed bottom-6 left-6 z-50 flex items-center gap-3">
+    <!-- Tombol Review Pembeli (Untuk Umum/Admin) -->
+    <div id="fab-review-container" class="hidden">
+        <button onclick="toggleReviewChat()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-3 rounded-full shadow-xl transition-all duration-300 transform hover:scale-105 text-sm sm:text-base whitespace-nowrap">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+            <span>Review Pembeli</span>
+        </button>
+    </div>
+    
+    <!-- Tombol Khusus Admin (Akan Muncul Berdampingan Ke Samping) -->
+    <div id="admin-actions-container" class="hidden flex items-center gap-3">
+        <!-- Tombol Tambah -->
+        <button onclick="openAdminFormModal('add')" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-3 rounded-full shadow-xl transition-all duration-300 transform hover:scale-105 text-sm sm:text-base whitespace-nowrap">
+            <span class="text-xl leading-none">➕</span>
+            <span>Tambah Item Baru</span>
+        </button>
+        
+        <!-- KODE BARU: Tombol Keluar Admin -->
+        <button onclick="logoutAdmin()" class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-3 rounded-full shadow-xl transition-all duration-300 transform hover:scale-105 text-sm sm:text-base whitespace-nowrap">
+            <span class="text-lg leading-none">🚪</span>
+            <span>Keluar</span>
+        </button>
+    </div>  
 </div>
 
 <!-- WhatsApp-Style Testimonial Chat Box -->
@@ -1631,6 +1983,134 @@ function parseCSVLine(text) {
 <div id="mini-loading-testi" class="hidden fixed bottom-6 left-6 z-50 bg-gray-900/90 text-white text-xs px-3 py-2 rounded-lg shadow-md flex items-center gap-2">
     <div class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
     <span id="mini-loading-text">Memproses...</span>
+</div>
+
+<!-- MODAL CRUD ADMIN -->
+<div id="admin-crud-modal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 overflow-y-auto flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative p-6">
+        
+        <!-- Header Modal -->
+        <div class="flex justify-between items-center border-b pb-3 mb-4 dark:border-gray-700">
+            <h3 id="admin-modal-title" class="text-xl font-bold text-gray-800 dark:text-white">➕ Tambah Item Baru</h3>
+            <button type="button" onclick="closeAdminFormModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <!-- Form Modal -->
+        <form id="admin-crud-form" onsubmit="handleAdminFormSubmit(event)">
+            <input type="hidden" id="admin-form-action" value="add">
+            <input type="hidden" id="admin-form-original-name" value="">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Nama & Kategori -->
+                <div>
+                    <label class="block text-sm font-medium mb-1">Nama Produk *</label>
+                    <input type="text" id="admin-p-nama" required class="w-full border rounded-lg p-2 dark:bg-gray-700 dark:border-gray-600">
+                </div>
+<!-- GANTI BLOK KATEGORI LAMA DENGAN INI: -->
+<div>
+    <label class="block text-sm font-medium mb-1">Kategori *</label>
+    <select id="admin-p-kategori" required class="w-full border rounded-lg p-2 dark:bg-gray-700 dark:border-gray-600">
+        <option value="" disabled selected>-- Pilih Kategori --</option>
+        <option value="1/6 Figures and parts">1/6 Figures and parts</option>
+        <option value="1/12 Figures and parts">1/12 Figures and parts</option>
+        <option value="Gunpla">Gunpla</option>
+        <option value="1/64th scale">1/64th scale</option>
+        <option value="others">Others</option>
+    </select>
+</div>
+
+
+                <!-- Harga & Berat -->
+                <div>
+                    <label class="block text-sm font-medium mb-1">Harga (Rupiah) *</label>
+                    <input type="number" id="admin-p-harga" required class="w-full border rounded-lg p-2 dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Berat (Gram) *</label>
+                    <input type="number" id="admin-p-berat" required class="w-full border rounded-lg p-2 dark:bg-gray-700 dark:border-gray-600">
+                </div>
+
+                <!-- Stok & Featured -->
+                <div>
+                    <label class="block text-sm font-medium mb-1">Stok *</label>
+                    <input type="number" id="admin-p-stock" required class="w-full border rounded-lg p-2 dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Featured Product?</label>
+                    <select id="admin-p-featured" class="w-full border rounded-lg p-2 dark:bg-gray-700 dark:border-gray-600">
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                    </select>
+                </div>
+
+                <!-- Diskon & Harga Diskon -->
+                <div>
+                    <label class="block text-sm font-medium mb-1">Diskon (%)</label>
+                    <input type="number" id="admin-p-diskon" value="0" class="w-full border rounded-lg p-2 dark:bg-gray-700 dark:border-gray-600">
+                </div>
+
+                <!-- Tokopedia Link & Nama File Gambar Bawaan -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium mb-1">URL Tokopedia</label>
+                    <input type="url" id="admin-p-tokopedia" class="w-full border rounded-lg p-2 dark:bg-gray-700 dark:border-gray-600" placeholder="https://tokopedia.link/...">
+                </div>
+
+                <!-- Deskripsi -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium mb-1">Deskripsi Produk *</label>
+                    <textarea id="admin-p-deskripsi" required rows="3" class="w-full border rounded-lg p-2 dark:bg-gray-700 dark:border-gray-600"></textarea>
+                </div>
+            </div>
+
+            <!-- Bagian Upload Gambar (Galeri 1-5) -->
+            <div class="mt-4 border-t pt-4 dark:border-gray-700">
+                <label class="block text-sm font-bold mb-2">Media Galeri Foto (Maks. 5 Foto Base64)</label>
+                <div id="modal-loading-status" class="hidden text-xs text-blue-500 mb-2 font-semibold animated pulse">Mengompresi gambar...</div>
+                
+                <div class="grid grid-cols-5 gap-2">
+                    <!-- Perulangan Kontainer 1 sampai 5 -->
+                    <div class="flex flex-col items-center">
+                        <div id="preview-foto1" class="w-16 h-16 border rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xs text-center overflow-hidden">Utama</div>
+                        <label class="mt-1 px-2 py-0.5 bg-blue-500 text-white rounded text-[10px] cursor-pointer hover:bg-blue-600">Pilih<input type="file" accept="image/*" class="hidden" onchange="processProductImage(this, 'prod-foto1', 'preview-foto1')"></label>
+                        <span id="size-prod-foto1" class="text-[9px] text-gray-400">0 KB</span>
+                        <input type="hidden" id="prod-foto1">
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div id="preview-foto2" class="w-16 h-16 border rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xs text-center overflow-hidden">Foto 2</div>
+                        <label class="mt-1 px-2 py-0.5 bg-blue-500 text-white rounded text-[10px] cursor-pointer hover:bg-blue-600">Pilih<input type="file" accept="image/*" class="hidden" onchange="processProductImage(this, 'prod-foto2', 'preview-foto2')"></label>
+                        <span id="size-prod-foto2" class="text-[9px] text-gray-400">0 KB</span>
+                        <input type="hidden" id="prod-foto2">
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div id="preview-foto3" class="w-16 h-16 border rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xs text-center overflow-hidden">Foto 3</div>
+                        <label class="mt-1 px-2 py-0.5 bg-blue-500 text-white rounded text-[10px] cursor-pointer hover:bg-blue-600">Pilih<input type="file" accept="image/*" class="hidden" onchange="processProductImage(this, 'prod-foto3', 'preview-foto3')"></label>
+                        <span id="size-prod-foto3" class="text-[9px] text-gray-400">0 KB</span>
+                        <input type="hidden" id="prod-foto3">
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div id="preview-foto4" class="w-16 h-16 border rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xs text-center overflow-hidden">Foto 4</div>
+                        <label class="mt-1 px-2 py-0.5 bg-blue-500 text-white rounded text-[10px] cursor-pointer hover:bg-blue-600">Pilih<input type="file" accept="image/*" class="hidden" onchange="processProductImage(this, 'prod-foto4', 'preview-foto4')"></label>
+                        <span id="size-prod-foto4" class="text-[9px] text-gray-400">0 KB</span>
+                        <input type="hidden" id="prod-foto4">
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div id="preview-foto5" class="w-16 h-16 border rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xs text-center overflow-hidden">Foto 5</div>
+                        <label class="mt-1 px-2 py-0.5 bg-blue-500 text-white rounded text-[10px] cursor-pointer hover:bg-blue-600">Pilih<input type="file" accept="image/*" class="hidden" onchange="processProductImage(this, 'prod-foto5', 'preview-foto5')"></label>
+                        <span id="size-prod-foto5" class="text-[9px] text-gray-400">0 KB</span>
+                        <input type="hidden" id="prod-foto5">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Action -->
+            <div class="flex justify-end gap-2 mt-6 border-t pt-4 dark:border-gray-700">
+                <button type="button" onclick="closeAdminFormModal()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">Batal</button>
+                <button type="submit" id="admin-btn-submit" class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">Simpan Data</button>
+            </div>
+        </form>
+    </div>
 </div>
 </body>
 </html>
