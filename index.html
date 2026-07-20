@@ -647,96 +647,105 @@ document.getElementById('logo-situs').addEventListener('click', function() {
             applyFilterAndSearch();
         }
 
-        function renderProducts() {
-            const grid = document.getElementById('product-grid');
-            if(filteredProducts.length === 0) {
-                grid.innerHTML = '<p class="text-center col-span-full text-gray-400 dark:text-gray-500 py-12">Tidak ada produk yang cocok.</p>';
-                document.getElementById('pagination-controls').innerHTML = '';
-                return;
+function renderProducts() {
+    const grid = document.getElementById('product-grid');
+    if(filteredProducts.length === 0) {
+        grid.innerHTML = '<p class="text-center col-span-full text-gray-400 dark:text-gray-500 py-12">Tidak ada produk yang cocok.</p>';
+        document.getElementById('pagination-controls').innerHTML = '';
+        return;
+    }
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const productsToDisplay = filteredProducts.slice(startIndex, endIndex);
+
+    const keys = allProducts.length > 0 ? Object.keys(allProducts[0]) : [];
+    const hargaKey = keys.find(k => k.toLowerCase() === 'harga') || 'Harga';
+    const diskonKey = keys.find(k => k.toLowerCase() === 'diskon') || 'Diskon';
+    const hargaDiskonKey = keys.find(k => k.toLowerCase() === 'harga_diskon') || 'Harga_Diskon';
+
+    grid.innerHTML = productsToDisplay.map((p) => {
+        const namaProduk = p.Nama || "Collectible Item";
+        const namaAman = namaProduk.replace(/['"]/g, '\\$&');
+        const isKosong = p.Status && p.Status.trim().toLowerCase() === 'kosong';
+        
+        // Membersihkan string menjadi angka mentah
+        const diskonValue = p[diskonKey] ? p[diskonKey].toString().replace(/[^0-9]/g, '') : '';
+        let hargaNormalMentah = p[hargaKey] ? p[hargaKey].toString().replace(/[^0-9]/g, '') : '';
+        let hargaDiskonMentah = p[hargaDiskonKey] ? p[hargaDiskonKey].toString().replace(/[^0-9]/g, '') : '';
+        
+        // --- PERBAIKAN UTAMA: Validasi diskon harus > 0 (menggunakan parseInt untuk diskonValue) ---
+        let htmlHarga = "";
+        const apakahDiskonValid = diskonValue && 
+                                  parseInt(diskonValue) > 0 && 
+                                  hargaDiskonMentah && 
+                                  parseInt(hargaDiskonMentah) > 0;
+
+        if (apakahDiskonValid) {
+            let formattedBaru = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(hargaDiskonMentah).replace(/\s?/g, '');
+            htmlHarga = `
+                <span class="text-gray-400 dark:text-gray-500 line-through text-[10px] block">Rp ${parseInt(hargaNormalMentah).toLocaleString('id-ID')}</span>
+                <span class="text-emerald-700 dark:text-emerald-400 font-extrabold text-sm sm:text-lg block leading-tight">${formattedBaru}</span>
+            `;
+        } else {
+            let formattedNormal = "Hubungi Admin";
+            if (hargaNormalMentah) {
+                formattedNormal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(hargaNormalMentah).replace(/\s?/g, '');
             }
-
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const productsToDisplay = filteredProducts.slice(startIndex, endIndex);
-
-            const keys = allProducts.length > 0 ? Object.keys(allProducts[0]) : [];
-            const hargaKey = keys.find(k => k.toLowerCase() === 'harga') || 'Harga';
-            const diskonKey = keys.find(k => k.toLowerCase() === 'diskon') || 'Diskon';
-            const hargaDiskonKey = keys.find(k => k.toLowerCase() === 'harga_diskon') || 'Harga_Diskon';
-
-            grid.innerHTML = productsToDisplay.map((p) => {
-                const namaProduk = p.Nama || "Collectible Item";
-                const namaAman = namaProduk.replace(/['"]/g, '\\$&');
-                const isKosong = p.Status && p.Status.trim().toLowerCase() === 'kosong';
-                const diskonValue = p[diskonKey] ? p[diskonKey].replace(/[^0-9]/g, '') : '';
-                
-                let hargaNormalMentah = p[hargaKey] ? p[hargaKey].replace(/[^0-9]/g, '') : '';
-                let hargaDiskonMentah = p[hargaDiskonKey] ? p[hargaDiskonKey].replace(/[^0-9]/g, '') : '';
-                
-                let htmlHarga = "";
-                if (diskonValue && hargaDiskonMentah) {
-                    let formattedBaru = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(hargaDiskonMentah).replace(/\s?/g, '');
-                    htmlHarga = `
-                        <span class="text-gray-400 dark:text-gray-500 line-through text-[10px] block">Rp ${parseInt(hargaNormalMentah).toLocaleString('id-ID')}</span>
-                        <span class="text-emerald-700 dark:text-emerald-400 font-extrabold text-sm sm:text-lg block leading-tight">${formattedBaru}</span>
-                    `;
-                } else {
-                    let formattedNormal = "Hubungi Admin";
-                    if (hargaNormalMentah) {
-                        formattedNormal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(hargaNormalMentah).replace(/\s?/g, '');
-                    }
-                    htmlHarga = `<span class="text-gray-700 dark:text-gray-200 font-extrabold text-sm sm:text-lg block">${formattedNormal}</span>`;
-                }
-
-                // Kondisional tombol bawah berdasarkan mode admin
-                let htmlTombolBawah = "";
-                if (isAdminMode) {
-                    htmlTombolBawah = `
-                        <div class="p-2.5 sm:p-4 pt-0 grid grid-cols-2 gap-2">
-                            <button onclick="event.stopPropagation(); openAdminFormModal('edit', '${namaAman}')" class="bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold py-1.5 px-2 rounded-lg transition">
-                                ✏️ Edit
-                            </button>
-                            <button onclick="event.stopPropagation(); handleAdminDelete('${namaAman}')" class="bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold py-1.5 px-2 rounded-lg transition">
-                                🗑️ Hapus
-                            </button>
-                        </div>
-                    `;
-                } else {
-                    htmlTombolBawah = `
-                        <div class="p-2.5 sm:p-4 pt-0 text-center text-[11px] sm:text-xs font-medium text-emerald-600 dark:text-emerald-400 group-hover:underline">
-                            Lihat Detail ➔
-                        </div>
-                    `;
-                }
-
-                return `
-                    <div ${isAdminMode ? '' : `onclick="openModalByName('${namaAman}')"`} class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition duration-300 flex flex-col justify-between cursor-pointer group">
-                        <div>
-                            <div class="relative pb-[100%] bg-gray-50 dark:bg-gray-900 overflow-hidden">
-                                <img src="${p.Foto || 'https://via.placeholder.com/300?text=No+Image'}" alt="${namaProduk}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
-                                <span class="absolute top-1.5 right-1.5 text-[9px] sm:text-xs font-semibold px-1.5 py-0.5 sm:py-1 rounded shadow-sm ${isKosong ? 'bg-red-100 text-red-800' : p.Status === 'Ready' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
-                                    ${p.Status || 'Ready'}
-                                </span>
-                                ${diskonValue ? `
-                                    <span class="absolute bottom-1.5 right-1.5 bg-red-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm tracking-wider animate-pulse">
-                                        -${diskonValue}%
-                                    </span>
-                                ` : ''}
-                            </div>
-                            <div class="p-2.5 sm:p-4">
-                                <span class="text-[9px] sm:text-xs text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider">${p.Kategori || 'General'}</span>
-                                <h4 class="font-bold text-gray-800 dark:text-gray-100 text-xs sm:text-base mt-0.5 sm:mt-1 line-clamp-2 h-8 sm:h-12 leading-tight group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition">${namaProduk}</h4>
-                                <div class="mt-2 h-10 sm:h-12 flex flex-col justify-end">
-                                    ${htmlHarga}
-                                </div>
-                            </div>
-                        </div>
-                        ${htmlTombolBawah}
-                    </div>
-                `;
-            }).join('');
-            renderPaginationControls();
+            htmlHarga = `<span class="text-gray-700 dark:text-gray-200 font-extrabold text-sm sm:text-lg block">${formattedNormal}</span>`;
         }
+
+        // Kondisional tombol bawah berdasarkan mode admin
+        let htmlTombolBawah = "";
+        if (isAdminMode) {
+            htmlTombolBawah = `
+                <div class="p-2.5 sm:p-4 pt-0 grid grid-cols-2 gap-2">
+                    <button onclick="event.stopPropagation(); openAdminFormModal('edit', '${namaAman}')" class="bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold py-1.5 px-2 rounded-lg transition">
+                        ✏️ Edit
+                    </button>
+                    <button onclick="event.stopPropagation(); handleAdminDelete('${namaAman}')" class="bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold py-1.5 px-2 rounded-lg transition">
+                        🗑️ Hapus
+                    </button>
+                </div>
+            `;
+        } else {
+            htmlTombolBawah = `
+                <div class="p-2.5 sm:p-4 pt-0 text-center text-[11px] sm:text-xs font-medium text-emerald-600 dark:text-emerald-400 group-hover:underline">
+                    Lihat Detail ➔
+                </div>
+            `;
+        }
+
+        return `
+            <div ${isAdminMode ? '' : `onclick="openModalByName('${namaAman}')"`} class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition duration-300 flex flex-col justify-between cursor-pointer group">
+                <div>
+                    <div class="relative pb-[100%] bg-gray-50 dark:bg-gray-900 overflow-hidden">
+                        <img src="${p.Foto || 'https://via.placeholder.com/300?text=No+Image'}" alt="${namaProduk}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://via.placeholder.com/300?text=No+Image'">
+                        <span class="absolute top-1.5 right-1.5 text-[9px] sm:text-xs font-semibold px-1.5 py-0.5 sm:py-1 rounded shadow-sm ${isKosong ? 'bg-red-100 text-red-800' : p.Status === 'Ready' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                            ${p.Status || 'Ready'}
+                        </span>
+                        
+                        <!-- SEKARANG AMAN: Hanya muncul jika diskon benar-benar di atas 0 -->
+                        ${apakahDiskonValid ? `
+                            <span class="absolute bottom-1.5 right-1.5 bg-red-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm tracking-wider animate-pulse">
+                                -${diskonValue}%
+                            </span>
+                        ` : ''}
+                    </div>
+                    <div class="p-2.5 sm:p-4">
+                        <span class="text-[9px] sm:text-xs text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider">${p.Kategori || 'General'}</span>
+                        <h4 class="font-bold text-gray-800 dark:text-gray-100 text-xs sm:text-base mt-0.5 sm:mt-1 line-clamp-2 h-8 sm:h-12 leading-tight group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition">${namaProduk}</h4>
+                        <div class="mt-2 h-10 sm:h-12 flex flex-col justify-end">
+                            ${htmlHarga}
+                        </div>
+                    </div>
+                </div>
+                ${htmlTombolBawah}
+            </div>
+        `;
+    }).join('');
+    renderPaginationControls();
+}
 
         function renderPaginationControls() {
             const container = document.getElementById('pagination-controls');
@@ -1488,7 +1497,7 @@ function processImageKunjungan(inputElement, targetInputId, previewId) {
             const img = new Image();
             img.onload = function() {
                 try {
-                    const maxDimension = 480;
+                    const maxDimension = 640;
                     let targetWidth, targetHeight;
 
                     if (img.width > img.height) {
@@ -1505,7 +1514,7 @@ function processImageKunjungan(inputElement, targetInputId, previewId) {
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
 
-                    const base64Result = canvas.toDataURL('image/jpeg', 0.45);
+                    const base64Result = canvas.toDataURL('image/jpeg', 0.6);
                     const stringLength = base64Result.length - base64Result.indexOf(',') - 1;
                     const fileSizeInKB = (stringLength * 3 / 4) / 1024;
 
